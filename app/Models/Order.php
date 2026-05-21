@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Order extends Model
+{
+    protected $fillable = [
+        'status', 'customer_id', 'date', 'total_price', 'notes', 'reason_for_cancellation', 'nif', 'address', 'payment_type', 'payment_ref', 'receipt_url', 'custom',
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+        'total_price' => 'decimal:2',
+        'custom' => 'array',
+    ];
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class)->withTrashed();
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+}

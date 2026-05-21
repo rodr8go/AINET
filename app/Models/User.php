@@ -2,66 +2,33 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['name', 'email', 'password', 'admin', 'type', 'gender', 'photo_url'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $fillable = [
+        'name', 'email', 'password', 'user_type', 'gender', 'blocked', 'photo_url', 'custom',
+    ];
 
-    /**
-     * Get the user's initials
-     */
-    public function initials(): string
-    {
-        return Str::of($this->name)
-            ->explode(' ')
-            ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
-            ->implode('');
-    }
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
 
-    public function getPhotoFullUrlAttribute()
-    {
-        if ($this->photo_url && Storage::disk('public')->exists("photos/{$this->photo_url}")) {
-            return asset("storage/photos/{$this->photo_url}");
-        } else {
-            return asset("storage/photos/anonymous.png");
-        }
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'blocked' => 'integer',
+        'custom' => 'array',
+    ];
 
-    public function teacher(): HasOne
+    // Para bater certo com o "1" para "N" do diagrama, usamos hasMany:
+    public function customers()
     {
-        return $this->hasOne(Teacher::class);
-    }
-
-    public function student(): HasOne
-    {
-        return $this->hasOne(Student::class);
+        return $this->hasMany(Customer::class, 'id', 'id');
     }
 }
