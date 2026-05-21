@@ -2,32 +2,64 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
-class User extends Authenticatable
+#[Fillable(['name', 'email', 'password', 'user_type', 'gender', 'blocked', 'photo_url', 'custom'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
 
-    protected $fillable = [
-        'name', 'email', 'password', 'user_type', 'gender', 'blocked', 'photo_url', 'custom',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'blocked' => 'integer',
+            'custom' => 'array',
+        ];
+    }
 
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    /**
+     * Get the user's initials
+     */
+    public function initials(): string
+    {
+        return Str::of($this->name)
+            ->explode(' ')
+            ->take(2)
+            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->implode('');
+    }
 
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-        'blocked' => 'integer',
-        'custom' => 'array',
-    ];
+    public function getPhotoFullUrlAttribute()
+    {
+        if ($this->photo_url && Storage::disk('public')->exists("photos/{$this->photo_url}")) {
+            return asset("storage/photos/{$this->photo_url}");
+        } else {
+            return asset("storage/photos/anonymous.png");
+        }
+    }
 
-    // Para bater certo com o "1" para "N" do diagrama, usamos hasMany:
-    public function customers()
+    // Relação 1 para N com Customers de acordo com o Diagrama ER
+    public function customers(): HasMany
     {
         return $this->hasMany(Customer::class, 'id', 'id');
     }
