@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\View;
-use App\Models\Course;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use App\Policies\AdministrativePolicy;
@@ -46,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         });
         try {
             // View::share adds data (variables) that are shared through all views
-            View::share('sharedCourses', Course::orderBy('type')->orderBy('abbreviation')->get());
+            
         } catch (\Exception $e) {
             // No need to do anything – this just ensures that no exception is
             // thrown if "courses" table does not exist when running
