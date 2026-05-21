@@ -1,24 +1,21 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes - Loja FunShirt
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\CatalogController;
+use App\Http\Controllers\CartController;
 
 /* ----- ROTAS PÚBLICAS (Anónimos / Todos) ----- */
 Route::view('/', 'home')->name('home');
 
-// Catálogo (Fase 3)
-Route::get('catalogo', function () { return 'Catálogo de Imagens'; })->name('catalog.index');
+// Catálogo da Loja
+Route::get('catalogo', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('catalogo/{tshirtImage}', [CatalogController::class, 'show'])->name('catalog.show');
 
-// Carrinho de Compras (Acessível a Anónimos)
-Route::get('cart', function () { return 'Visualizar Carrinho'; })->name('cart.show');
+// Carrinho de Compras (Sessão)
+Route::get('cart', [CartController::class, 'show'])->name('cart.show');
+Route::post('cart/add/{tshirtImage}', [CartController::class, 'add'])->name('cart.add');
+Route::delete('cart/remove/{itemKey}', [CartController::class, 'remove'])->name('cart.remove');
+Route::delete('cart/clear', [CartController::class, 'destroy'])->name('cart.destroy');
 
 
 /* ----- ROTAS PROTEGIDAS (Apenas Utilizadores Autenticados e Verificados) ----- */
