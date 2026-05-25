@@ -13,7 +13,7 @@
             @if(Auth::user()->user_type === 'C')
                 <flux:navlist.group heading="Área do Cliente">
                     <flux:navlist.item icon="shopping-bag" href="{{ route('client.orders.index') }}">Minhas Encomendas</flux:navlist.item>
-                    <flux:navlist.item icon="image" href="{{ route('client.images.index') }}">Meus Designs</flux:navlist.item>
+                    <flux:navlist.item icon="photo" href="{{ route('client.images.index') }}">Meus Designs</flux:navlist.item>
                 </flux:navlist.group>
             @endif
 
@@ -30,6 +30,14 @@
                 </flux:navlist.group>
             @endif
         @endauth
+
+        @guest
+            <flux:navlist.group heading="Conta">
+                <flux:navlist.item icon="arrow-right-end-on-rectangle" href="{{ route('login') }}">Login</flux:navlist.item>
+                <flux:navlist.item icon="user-plus" href="{{ route('register') }}">Registar</flux:navlist.item>
+            </flux:navlist.group>
+        @endguest
+
     </flux:navlist>
 
     <flux:spacer />

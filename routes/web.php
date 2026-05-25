@@ -17,6 +17,18 @@ Route::post('cart/add/{tshirtImage}', [CartController::class, 'add'])->name('car
 Route::delete('cart/remove/{itemKey}', [CartController::class, 'remove'])->name('cart.remove');
 Route::delete('cart/clear', [CartController::class, 'destroy'])->name('cart.destroy');
 
+/* ----- ROTAS DE AUTENTICAÇÃO (Adiciona aqui) ----- */
+// Rota para mostrar o formulário
+Route::get('login', function () {
+    return view('pages.auth.login');
+})->middleware('guest')->name('login');
+
+Route::get('register', function () {
+    return view('pages.auth.register'); // Ajusta o caminho conforme a tua estrutura real
+})->middleware('guest')->name('register');
+
+// O Fortify já trata do 'POST' automaticamente se estiver configurado no fortify.php
+
 
 /* ----- ROTAS PROTEGIDAS (Apenas Utilizadores Autenticados e Verificados) ----- */
 Route::middleware(['auth', 'verified'])->group(function () {

@@ -9,7 +9,7 @@
                 <h2 class="mt-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">O seu carrinho está vazio</h2>
                 <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Visite o nosso catálogo para encontrar estampas incríveis.</p>
                 <div class="mt-6">
-                    <flux:button href="{{ route('catalog.index') }}" variant="filled" color="indigo" size="lg">
+                    <flux:button href="{{ route('catalog.index') }}" variant="filled" color="indigo">
                         Explorar Catálogo
                     </flux:button>
                 </div>
@@ -104,13 +104,13 @@
 
                         <div class="mt-6">
                             @auth
-                                <flux:button href="#" variant="filled" color="indigo" size="lg" class="w-full text-center font-semibold">
-                                    Avançar para Checkout 💳
-                                </flux:button>
+                                <flux:button type="submit" variant="filled" color="indigo" icon="shopping-cart" class="w-full mt-2">
+    Adicionar ao Carrinho
+</flux:button>
                             @else
-                                <flux:button href="{{ route('login') }}" variant="filled" color="zinc" size="lg" class="w-full text-center font-semibold">
-                                    Faça login para Comprar 🔐
-                                </flux:button>
+                                <flux:button href="{{ route('login') }}" variant="filled" color="zinc" class="w-full text-center font-semibold">
+    Faça login para Comprar 🔐
+</flux:button>
                                 <p class="mt-2 text-center text-xs text-zinc-400">Apenas clientes registados podem fechar encomendas.</p>
                             @endauth
                         </div>
