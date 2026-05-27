@@ -32,7 +32,7 @@ class CatalogController extends Controller
             });
         }
 
-        $images = $query->paginate(12);
+        $images = $query->paginate(12)->withQueryString();
         $categories = Category::all();
         $colors = Color::all(); // Necessário para o utilizador escolher na montra
 
