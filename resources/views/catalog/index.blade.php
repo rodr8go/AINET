@@ -1,4 +1,4 @@
-<x-layouts.app title="Catálogo de T-shirts">
+<x-layouts::main-content title="Catálogo de T-shirts">
     <div class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
         
         <div class="flex flex-col justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-700 sm:flex-row sm:items-center">
@@ -90,4 +90,4 @@
             </div>
         </div>
     </div>
-</x-layouts.app>
+</x-layouts::main-content>

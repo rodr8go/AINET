@@ -2,64 +2,237 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use App\Models\User;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\UserFormRequest;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
-    // Listar e filtrar todos os utilizadores [cite: 68]
-    public function index(Request $request)
-    {
-        $query = User::query();
+    use \App\Traits\UserPhotoFileStorage;
 
-        // Filtro por tipo de utilizador
-        if ($request->filled('type')) {
-            $query->where('user_type', $request->type);
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('can:viewAny,App\Models\User', only: ['index']),
+            new Middleware('can:create,App\Models\User', only: ['create', 'store']),
+            new Middleware('can:view,user', only: ['show']),
+            new Middleware('can:update,user', only: ['edit', 'update']),
+            new Middleware('can:delete,user', only: ['destroy']),
+        ];
+    }
+
+    /**
+     * Display a listing of users (employees and admins only)
+     */
+    public function index(Request $request): View
+    {
+        $usersQuery = User::whereIn('user_type', ['F', 'A'])
+            ->orderBy('user_type')
+            ->orderBy('name');
+        
+        $filterByName = $request->query('name');
+        $filterByType = $request->query('user_type');
+        
+        if ($filterByName) {
+            $usersQuery->where('name', 'like', "%$filterByName%");
         }
-
-        // Filtro por nome
-        if ($request->filled('name')) {
-            $query->where('name', 'like', '%' . $request->name . '%');
+        
+        if ($filterByType && in_array($filterByType, ['F', 'A'])) {
+            $usersQuery->where('user_type', $filterByType);
         }
-
-        $users = $query->paginate(15);
-        return view('users.index', compact('users'));
+        
+        $users = $usersQuery->paginate(20)->withQueryString();
+        
+        return view('users.index', compact('users', 'filterByName', 'filterByType'));
     }
 
-    // Editar dados ou permissões de um funcionário/cliente [cite: 67-68]
-    public function edit(User $user)
+    /**
+     * Show the form for creating a new user
+     */
+    public function create(): View
     {
-        return view('users.edit', compact('user'));
+        $newUser = new User();
+        return view('users.create')->with('user', $newUser);
     }
 
-    public function update(Request $request, User $user)
+    /**
+     * Store a newly created user
+     */
+    public function store(UserFormRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'user_type' => 'required|in:C,F,A',
-            'blocked' => 'required|boolean',
-        ]);
-
-        $user->update($request->only('name', 'user_type', 'blocked'));
-
-        return redirect()->route('admin.users.index')->with('success', 'Conta atualizada com sucesso.');
+        $validatedData = $request->validated();
+        
+        $newUser = new User();
+        $newUser->user_type = $validatedData['user_type'];
+        $newUser->name = $validatedData['name'];
+        $newUser->email = $validatedData['email'];
+        
+        // Only sets admin field if it has permission to do it
+        $newUser->admin = Gate::check('createAdmin', User::class)
+            ? ($validatedData['admin'] ?? false)
+            : false;
+        
+        $newUser->gender = $validatedData['gender'];
+        $newUser->blocked = false;
+        $newUser->password = bcrypt('123'); // Default password
+        
+        $newUser->save();
+        
+        // Store photo if uploaded
+        if ($request->hasFile('photo_file')) {
+            $this->storeUserPhoto($request->photo_file, $newUser);
+        }
+        
+        // Send email verification notification
+        $newUser->sendEmailVerificationNotification();
+        
+        $url = route('users.show', ['user' => $newUser]);
+        $htmlMessage = "User <a href='$url'><u>{$newUser->name}</u></a> has been created successfully!";
+        
+        return redirect()->route('users.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', $htmlMessage);
     }
 
-    // Bloquear/Desbloquear acesso rapidamente [cite: 67-68]
-    public function toggleBlock(User $user)
+    /**
+     * Display the specified user
+     */
+    public function show(User $user): View
     {
-        $user->blocked = !$user->blocked;
+        return view('users.show')->with('user', $user);
+    }
+
+    /**
+     * Show the form for editing the specified user
+     */
+    public function edit(User $user): View
+    {
+        return view('users.edit')->with('user', $user);
+    }
+
+    /**
+     * Update the specified user
+     */
+    public function update(UserFormRequest $request, User $user): RedirectResponse
+    {
+        $validatedData = $request->validated();
+        
+        $user->name = $validatedData['name'];
+        $user->email = $validatedData['email'];
+        
+        // Only changes admin field if it has permission to do it
+        if (Gate::check('updateAdmin', $user)) {
+            $user->admin = $validatedData['admin'] ?? false;
+        }
+        
+        $user->gender = $validatedData['gender'];
         $user->save();
         
-        $estado = $user->blocked ? 'bloqueada' : 'desbloqueada';
-        return back()->with('success', "A conta foi {$estado}.");
+        // Handle photo update
+        if ($request->hasFile('photo_file')) {
+            $this->deleteUserPhoto($user);
+            $this->storeUserPhoto($request->photo_file, $user);
+        }
+        
+        $url = route('users.show', ['user' => $user]);
+        $htmlMessage = "User <a href='$url'><u>{$user->name}</u></a> has been updated successfully!";
+        
+        return redirect()->route('users.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', $htmlMessage);
     }
 
-    // Remover conta (Soft Delete automático gerido pela framework) [cite: 68-69, 420-422]
-    public function destroy(User $user)
+    /**
+     * Remove the specified user (soft delete)
+     */
+    public function destroy(User $user): RedirectResponse
     {
-        $user->delete(); 
-        return back()->with('success', 'Utilizador removido do sistema (Soft Delete aplicado).');
+        try {
+            $url = route('users.show', ['user' => $user]);
+            $fileName = $user->photo_url;
+            $user->delete(); // Soft delete
+            $this->deletePhotoFile($fileName);
+            
+            $alertType = 'success';
+            $alertMsg = "User {$user->name} has been deleted successfully!";
+            
+            return redirect()->route('users.index')
+                ->with('alert-type', $alertType)
+                ->with('alert-msg', $alertMsg);
+        } catch (\Exception $error) {
+            $alertType = 'danger';
+            $alertMsg = "It was not possible to delete the user {$user->name}!";
+            
+            return redirect()->back()
+                ->with('alert-type', $alertType)
+                ->with('alert-msg', $alertMsg);
+        }
+    }
+
+    /**
+     * Block a user
+     */
+    public function block(User $user): RedirectResponse
+    {
+        if (!Gate::allows('block', $user)) {
+            abort(403);
+        }
+        
+        $user->blocked = true;
+        $user->save();
+        
+        return redirect()->back()
+            ->with('alert-type', 'success')
+            ->with('alert-msg', "User {$user->name} has been blocked.");
+    }
+    
+    /**
+     * Unblock a user
+     */
+    public function unblock(User $user): RedirectResponse
+    {
+        if (!Gate::allows('block', $user)) {
+            abort(403);
+        }
+        
+        $user->blocked = false;
+        $user->save();
+        
+        return redirect()->back()
+            ->with('alert-type', 'success')
+            ->with('alert-msg', "User {$user->name} has been unblocked.");
+    }
+
+    /**
+     * Toggle user block status (convenience method)
+     */
+    public function toggleBlock(User $user): RedirectResponse
+    {
+        if ($user->blocked) {
+            return $this->unblock($user);
+        } else {
+            return $this->block($user);
+        }
+    }
+
+    /**
+     * Delete user photo
+     */
+    public function destroyPhoto(User $user): RedirectResponse
+    {
+        if ($this->deleteUserPhoto($user)) {
+            return redirect()->back()
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "Photo of user {$user->name} has been deleted.");
+        }
+        
+        return redirect()->back()
+            ->with('alert-type', 'warning')
+            ->with('alert-msg', "Photo of user {$user->name} does not exist.");
     }
 }

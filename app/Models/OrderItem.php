@@ -3,35 +3,56 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+
+#[Table(
+    table: 'order_items',
+    key: 'id',
+    keyType: 'int',
+    incrementing: true,
+    timestamps: true,
+)]
+#[Fillable([
+    'order_id',
+    'tshirt_image_id',
+    'color_code',
+    'size',
+    'qty',
+    'unit_price',
+    'sub_total',
+    'custom',
+])]
 
 class OrderItem extends Model
 {
-    protected $table = 'order_items';
-    public $timestamps = false;
-
-    protected $fillable = [
-        'order_id', 'tshirt_image_id', 'color_code', 'size', 'qty', 'unit_price', 'sub_total', 'custom',
-    ];
-
-    protected $casts = [
-        'qty' => 'integer',
-        'unit_price' => 'decimal:2',
-        'sub_total' => 'decimal:2',
-        'custom' => 'array',
-    ];
-
-    public function order()
+    //====================SIZES==========================
+    public const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
+    
+    protected function casts(): array
     {
-        return $this->belongsTo(Order::class);
+        return [
+            'qty' => 'integer',
+            'unit_price' => 'decimal:2',
+            'sub_total' => 'decimal:2',
+            'custom' => 'array',
+        ];
     }
-
-    public function tshirtImage()
+    
+    //====================RELATIONSHIPS====================
+    public function order(): BelongsTo
     {
-        return $this->belongsTo(TshirtImage::class)->withTrashed();
+        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
-
-    public function color()
+    
+    public function tshirtImage(): BelongsTo
     {
-        return $this->belongsTo(Color::class, 'color_code', 'code')->withTrashed();
+        return $this->belongsTo(TshirtImage::class, 'tshirt_image_id', 'id');
+    }
+    
+    public function color(): BelongsTo
+    {
+        return $this->belongsTo(Color::class, 'color_code', 'code');
     }
 }

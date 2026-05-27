@@ -1,44 +1,109 @@
-<flux:sidebar sticky stashable class="bg-zinc-50 dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700">
-    <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+    <head>
+        @include('partials.head')
+    </head>
+    <body class="min-h-screen bg-white dark:bg-zinc-800">
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+            <flux:sidebar.header>
+                <x-app-logo :sidebar="true" href="{{ route('home') }}" wire:navigate />
+                <flux:sidebar.collapse class="lg:hidden" />
+            </flux:sidebar.header>
 
-    <a href="{{ route('home') }}" class="flex items-center gap-2 px-4 py-2">
-        <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">👕 FunShirt</span>
-    </a>
+            <flux:navlist.item icon="home" href="{{ route('home') }}">Início</flux:navlist.item>
+            <flux:navlist.item icon="layout-grid" href="{{ route('catalog.index') }}">Catálogo</flux:navlist.item>
 
-    <flux:navlist variant="outline">
-        <flux:navlist.item icon="home" href="{{ route('home') }}">Início</flux:navlist.item>
-        <flux:navlist.item icon="layout-grid" href="{{ route('catalog.index') }}">Catálogo</flux:navlist.item>
+            @can('use-cart')
+                @if(count(session('cart', [])) > 0)
+                <flux:sidebar.nav variant="outline">
+                    <div class="relative inline-flex items-center mr-4">
+                        <div class="-top-0.5 absolute left-6 z-10">
+                            <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                {{ count(session('cart', [])) }}
+                            </p>
+                        </div>
+                        <flux:navlist.item icon="shopping-cart" icon:variant="solid"  :href="route('cart.show')" :current="request()->routeIs('cart.show')" wire:navigate>
+                            <span class="pl-2">Shopping Cart</span>
+                        </flux:navlist.item>
+                    </div>
+                </flux:sidebar.nav>
+                @endif
+            @endcan
 
-        @auth
-            @if(Auth::user()->user_type === 'C')
-                <flux:navlist.group heading="Área do Cliente">
-                    <flux:navlist.item icon="shopping-bag" href="{{ route('client.orders.index') }}">Minhas Encomendas</flux:navlist.item>
-                    <flux:navlist.item icon="photo" href="{{ route('client.images.index') }}">Meus Designs</flux:navlist.item>
-                </flux:navlist.group>
+            @can('admin')
+            <flux:sidebar.nav>
+                <flux:sidebar.group :heading="__('Platform')" class="grid">
+                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                        {{ __('Dashboard') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.nav>
+            @endcan
+
+            @if(Gate::check('index', \App\Models\TshirtImage::class))
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="Academics" class="grid">
+                        @can('index', \App\Models\TshirtImage::class)
+                            <flux:sidebar.item icon="academic-cap" :href="route('Tshirt_image.index')" :current="request()->routeIs('Tshirt_image.index')" wire:navigate>
+                                Tshirt
+                            </flux:sidebar.item>
+                        @endcan
+                    </flux:sidebar.group>
+                </flux:sidebar.nav>
             @endif
 
-            @if(Auth::user()->user_type === 'F')
-                <flux:navlist.group heading="Logística">
-                    <flux:navlist.item icon="inbox" href="{{ route('employee.orders.pending') }}">Encomendas Pendentes</flux:navlist.item>
-                </flux:navlist.group>
-            @endif
+            <flux:spacer />
 
-            @if(Auth::user()->user_type === 'A')
-                <flux:navlist.group heading="Gestão da Loja">
-                    <flux:navlist.item icon="chart-bar" href="{{ route('admin.dashboard') }}">Estatísticas</flux:navlist.item>
-                    <flux:navlist.item icon="users" href="{{ route('admin.users.index') }}">Utilizadores</flux:navlist.item>
-                </flux:navlist.group>
-            @endif
-        @endauth
+            @auth
+                <!-- Desktop User Menu -->
+                <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+                
+                <!-- Mobile User Menu (inside sidebar) -->
+                <div class="lg:hidden border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4">
+                    <div class="flex items-center gap-3 px-2 py-2">
+                        <flux:avatar
+                            :name="auth()->user()->name"
+                            :initials="auth()->user()->initials()"
+                            size="md"
+                        />
+                        <div class="flex-1 text-sm">
+                            <div class="font-medium">{{ auth()->user()->name }}</div>
+                            <div class="text-zinc-500 dark:text-zinc-400 text-xs">{{ auth()->user()->email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2">
+                        <flux:navlist.item icon="cog" :href="route('profile.edit')" wire:navigate>
+                            {{ __('Settings') }}
+                        </flux:navlist.item>
+                        
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:navlist.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-left">
+                                {{ __('Log out') }}
+                            </flux:navlist.item>
+                        </form>
+                    </div>
+                </div>
+            @else
+                <!-- Mobile Login (inside sidebar) -->
+                <div class="lg:hidden">
+                    <flux:navlist.item icon="user" :href="route('login')" wire:navigate>
+                        Login
+                    </flux:navlist.item>
+                </div>
+            @endauth
+        </flux:sidebar>
 
-        @guest
-            <flux:navlist.group heading="Conta">
-                <flux:navlist.item icon="arrow-right-end-on-rectangle" href="{{ route('login') }}">Login</flux:navlist.item>
-                <flux:navlist.item icon="user-plus" href="{{ route('register') }}">Registar</flux:navlist.item>
-            </flux:navlist.group>
-        @endguest
+        <!-- Main content area - no duplicate headers needed -->
+        {{ $slot }}
 
-    </flux:navlist>
+        @persist('toast')
+            <flux:toast.group>
+                <flux:toast />
+            </flux:toast.group>
+        @endpersist
 
-    <flux:spacer />
-</flux:sidebar>
+        @fluxScripts
+    </body>
+</html>
