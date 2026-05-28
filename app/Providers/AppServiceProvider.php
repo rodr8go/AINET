@@ -25,24 +25,32 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+ public function boot(): void
     {
         $this->configureDefaults();
 
         Gate::policy(User::class, AdministrativePolicy::class);
 
+        // 🛒 Quem pode usar o carrinho (Visitantes, Clientes normais ou Administradores)
         Gate::define('use-cart', function (?User $user) {
-            return $user === null || $user->type == 'A' || $user->type == 'S';
+            return $user === null || !$user->isEmployee();
         });
 
+        // ✅ Quem pode finalizar compras
         Gate::define('confirm-cart', function (User $user) {
-            return $user->type == 'A' || $user->type == 'S';
+            return $user->user_type !== 'F'; // Qualquer um menos funcionários
         });
 
+        // 👑 Quem é considerado ADMIN no sistema pelas rotas
         Gate::define('admin', function (User $user) {
-            // Only "administrator" users can "admin"
-            return $user->admin;
+            return $user->isAdmin(); // Usa o método helper que está no User.php ('A')
         });
+
+        // 👨‍💻 Quem é considerado FUNCIONÁRIO pelas rotas
+        Gate::define('employee', function (User $user) {
+            return $user->isEmployee(); // Usa o método helper que está no User.php ('F')
+        });
+
         try {
             // View::share adds data (variables) that are shared through all views
             

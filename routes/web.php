@@ -14,6 +14,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\PriceController;
+use App\Http\Controllers\MyImageController;
 
 //======================================= PUBLIC ROUTES
 
@@ -56,11 +57,11 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     });
     
-    //CUSTOMER IMAGES
-    Route::resource('my-images', TshirtImageController::class)
-    ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
-    ->parameters(['my-images' => 'tshirtImage'])
-    ->middleware('can:createCustom,App\Models\TshirtImage');
+    // 👤 CUSTOM IMAGES (Painel Pessoal do Cliente)
+    Route::resource('my-images', MyImageController::class)
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+        ->parameters(['my-images' => 'tshirtImage'])
+        ->middleware('can:use-cart');
 
     //CUSTOMER ORDER HISTORY
     Route::get('my-orders', [OrderController::class, 'myOrders'])->name('orders.my');
