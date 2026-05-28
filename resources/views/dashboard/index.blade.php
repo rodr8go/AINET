@@ -98,7 +98,7 @@
                     @forelse($recentOrders as $order)
                         <div class="flex justify-between items-center border-b pb-2">
                             <div>
-                                <p class="font-medium">#{{ $order->id }} - {{ $order->customer->user->name }}</p>
+                                <p class="font-medium">#{{ $order->id }} - {{ $order->customer?->user?->name ?? 'Deleted Customer' }}</p>
                                 <p class="text-sm text-gray-500">{{ $order->date->format('d/m/Y') }}</p>
                             </div>
                             <div class="text-right">
