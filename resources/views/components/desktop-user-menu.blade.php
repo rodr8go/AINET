@@ -20,8 +20,8 @@
             </div>
         </div>
 
-        {{-- Customer Section --}}
-        @can('use-cart')
+        {{-- 👤 Seção do Cliente --}}
+        @if(auth()->user()->isCustomer())
             <flux:menu.separator />
 
             <flux:menu.radio.group>
@@ -35,10 +35,10 @@
                     My Custom Images
                 </flux:menu.item>
             </flux:menu.radio.group>
-        @endcan
+        @endif
 
-        {{-- Employee Section --}}
-        @can('employee')
+        {{-- 👨‍💻 Seção do Funcionário --}}
+        @if(auth()->user()->isEmployee())
             <flux:menu.separator />
 
             <flux:menu.radio.group>
@@ -47,10 +47,10 @@
                     Pending Orders
                 </flux:menu.item>
             </flux:menu.radio.group>
-        @endcan
+        @endif
 
-        {{-- Admin Section --}}
-        @can('admin')
+        {{-- 👑 Seção do Administrador --}}
+        @if(auth()->user()->isAdmin())
             <flux:menu.separator />
 
             <flux:menu.radio.group>
@@ -74,12 +74,11 @@
                     Statistics
                 </flux:menu.item>
             </flux:menu.radio.group>
-        @endcan
+        @endif
 
         <flux:menu.separator />
 
         <flux:menu.radio.group>
-            {{-- My Record - goes to appropriate profile based on user type --}}
             <flux:menu.item :href="route('profile.edit')" icon="document-text" wire:navigate>
                 My Profile
             </flux:menu.item>
