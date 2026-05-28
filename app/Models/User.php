@@ -4,42 +4,62 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use Laravel\Fortify\Contracts\PasskeyUser;
+use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'email', 'password', 'user_type', 'gender', 'blocked', 'photo_url', 'custom'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
-class User extends Authenticatable implements MustVerifyEmail
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'user_type',
+    'gender',
+    'blocked',
+    'custom',
+    'photo_url'])]
+#[Hidden([
+    'password',
+    'two_factor_secret',
+    'two_factor_recovery_codes',
+    'remember_token'])]
+
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    use HasFactory,
+        Notifiable,
+        PasskeyAuthenticatable,
+        TwoFactorAuthenticatable,
+        SoftDeletes;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    //====================CASTS=========================== 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'blocked' => 'integer',
-            'custom' => 'array',
+            'blocked' => 'boolean',
+            'deleted_at' => 'datetime',
         ];
     }
 
-    /**
-     * Get the user's initials
-     */
+    //====================RELATIONSHIPS====================
+    public function customer(): HasOne
+    {
+        return $this->hasOne(Customer::class, 'user_id', 'id');
+    }
+
+    //====================GETTERS(Métodos Acessores)=======
+    // Get the user's initials
     public function initials(): string
     {
         return Str::of($this->name)
@@ -49,6 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
             ->implode('');
     }
 
+    //Get the full URL for the user's photo
     public function getPhotoFullUrlAttribute()
     {
         if ($this->photo_url && Storage::disk('public')->exists("photos/{$this->photo_url}")) {
@@ -58,9 +79,20 @@ class User extends Authenticatable implements MustVerifyEmail
         }
     }
 
-    // Relação 1 para N com Customers de acordo com o Diagrama ER
-    public function customers(): HasMany
-    {
-        return $this->hasMany(Customer::class, 'id', 'id');
+    //====================HELPER METHODS(Vericar user type/blocked)=======
+    public function isCustomer(): bool{
+        return $this->user_type === 'C';
+    }
+    
+    public function isEmployee(): bool{
+        return $this->user_type === 'F';
+    }
+    
+    public function isAdmin(): bool{
+        return $this->user_type === 'A';
+    }
+    
+    public function isBlocked(): bool{
+        return $this->blocked;
     }
 }

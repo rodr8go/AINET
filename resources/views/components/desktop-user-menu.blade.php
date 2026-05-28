@@ -20,45 +20,74 @@
             </div>
         </div>
 
-        @if(Gate::check('viewMy', \App\Models\Discipline::class) ||
-            Gate::check('viewMy', \App\Models\Teacher::class) ||
-            Gate::check('viewMy', \App\Models\Student::class))
+        {{-- Customer Section --}}
+        @can('use-cart')
             <flux:menu.separator />
 
             <flux:menu.radio.group>
-                @can('viewMy', \App\Models\Discipline::class)
-                <flux:menu.item icon="document" :href="route('disciplines.my')"
-                    :current="request()->routeIs('disciplines.my')" wire:navigate>
-                    My Disciplines
+                <flux:menu.item icon="shopping-bag" :href="route('orders.my')"
+                    :current="request()->routeIs('orders.my')" wire:navigate>
+                    My Orders
                 </flux:menu.item>
-                @endcan
-                @can('viewMy', \App\Models\Teacher::class)
-                    <flux:menu.item icon="user" :href="route('teachers.my')"
-                    :current="request()->routeIs('teachers.my')" wire:navigate>
-                    My Teachers
+                
+                <flux:menu.item icon="photo" :href="route('my-images.index')"
+                    :current="request()->routeIs('my-images.*')" wire:navigate>
+                    My Custom Images
                 </flux:menu.item>
-                @endcan
-                @can('viewMy', \App\Models\Student::class)
-                <flux:menu.item icon="users" :href="route('students.my')"
-                    :current="request()->routeIs('students.my')" wire:navigate>
-                    My Students
-                </flux:menu.item>
-                @endcan
             </flux:menu.radio.group>
-        @endif
+        @endcan
+
+        {{-- Employee Section --}}
+        @can('employee')
+            <flux:menu.separator />
+
+            <flux:menu.radio.group>
+                <flux:menu.item icon="truck" :href="route('employee.orders.pending')"
+                    :current="request()->routeIs('employee.orders.*')" wire:navigate>
+                    Pending Orders
+                </flux:menu.item>
+            </flux:menu.radio.group>
+        @endcan
+
+        {{-- Admin Section --}}
+        @can('admin')
+            <flux:menu.separator />
+
+            <flux:menu.radio.group>
+                <flux:menu.item icon="users" :href="route('users.index')"
+                    :current="request()->routeIs('users.*')" wire:navigate>
+                    Manage Users
+                </flux:menu.item>
+                
+                <flux:menu.item icon="shopping-bag" :href="route('customers.index')"
+                    :current="request()->routeIs('customers.*')" wire:navigate>
+                    Manage Customers
+                </flux:menu.item>
+                
+                <flux:menu.item icon="photo" :href="route('catalog-images.index')"
+                    :current="request()->routeIs('catalog-images.*')" wire:navigate>
+                    Catalog Images
+                </flux:menu.item>
+                
+                <flux:menu.item icon="chart-bar" :href="route('statistics.index')"
+                    :current="request()->routeIs('statistics.index')" wire:navigate>
+                    Statistics
+                </flux:menu.item>
+            </flux:menu.radio.group>
+        @endcan
+
         <flux:menu.separator />
 
         <flux:menu.radio.group>
-            <flux:menu.item :href="match(auth()->user()->type) {
-                    'S' => route('students.show', ['student' => auth()->user()->student]),
-                    'T' => route('teachers.show', ['teacher' => auth()->user()->teacher]),
-                    'A' => route('administratives.show', ['administrative' => auth()->user()])
-                }" icon="document-text" wire:navigate>
-                My Record
+            {{-- My Record - goes to appropriate profile based on user type --}}
+            <flux:menu.item :href="route('profile.edit')" icon="document-text" wire:navigate>
+                My Profile
             </flux:menu.item>
+            
             <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                 {{ __('Settings') }}
             </flux:menu.item>
+            
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item

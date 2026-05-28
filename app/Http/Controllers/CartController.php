@@ -53,7 +53,9 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        return redirect()->route('cart.show')->with('success', 'T-shirt adicionada ao carrinho!');
+        return redirect()->route('cart.show')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', "T-shirt {$tshirtImage->name} adicionada ao carrinho!");
     }
 
     // Remover um item do carrinho
@@ -66,13 +68,17 @@ class CartController extends Controller
             session()->put('cart', $cart);
         }
 
-        return redirect()->route('cart.show')->with('success', 'Item removido do carrinho.');
+        return redirect()->route('cart.show')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Item removido do carrinho.');
     }
 
     // Limpar o carrinho todo
     public function destroy()
     {
         session()->forget('cart');
-        return redirect()->route('cart.show')->with('success', 'Carrinho vazio.');
+        return redirect()->route('cart.show')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Carrinho vazio.');
     }
 }

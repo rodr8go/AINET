@@ -1,5 +1,7 @@
-<x-layouts.app title="O Meu Carrinho">
-    <div class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+<x-layouts::main-content title="Cart"
+                        heading="Shopping Cart"
+                        subheading="Disciplines to register for a student">
+<div class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <h1 class="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Carrinho de Compras 🛒</h1>
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Reveja as suas t-shirts antes de avançar para a finalização da encomenda.</p>
 
@@ -120,4 +122,4 @@
             </div>
         @endif
     </div>
-</x-layouts.app>
+</x-layouts::main-content>
