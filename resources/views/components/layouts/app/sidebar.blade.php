@@ -17,8 +17,7 @@
                 @if(count(session('cart', [])) > 0)
                 <flux:sidebar.nav variant="outline">
                     <div class="relative inline-flex items-center mr-4">
-                        <div class="-top-0.5 absolute left-6 z-10">
-                            <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                        <div class="-top-0.5 absolute left-6 z-10">                     
                                 {{ count(session('cart', [])) }}
                             </p>
                         </div>

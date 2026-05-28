@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+ public function boot(): void
     {
         $this->configureDefaults();
 
@@ -105,6 +105,26 @@ class AppServiceProvider extends ServiceProvider
 
     protected function shareGlobalData(): void
     {
+        // 🛒 Quem pode usar o carrinho (Visitantes, Clientes normais ou Administradores)
+        Gate::define('use-cart', function (?User $user) {
+            return $user === null || !$user->isEmployee();
+        });
+
+        // ✅ Quem pode finalizar compras
+        Gate::define('confirm-cart', function (User $user) {
+            return $user->user_type !== 'F'; // Qualquer um menos funcionários
+        });
+
+        // 👑 Quem é considerado ADMIN no sistema pelas rotas
+        Gate::define('admin', function (User $user) {
+            return $user->isAdmin(); // Usa o método helper que está no User.php ('A')
+        });
+
+        // 👨‍💻 Quem é considerado FUNCIONÁRIO pelas rotas
+        Gate::define('employee', function (User $user) {
+            return $user->isEmployee(); // Usa o método helper que está no User.php ('F')
+        });
+
         try {
             // Share all colors (for dropdowns everywhere)
             View::share('sharedColors', Color::orderBy('name')->get());

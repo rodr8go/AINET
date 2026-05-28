@@ -13,21 +13,26 @@
         <flux:navlist.item icon="home" href="{{ route('home') }}">Início</flux:navlist.item>
         <flux:navlist.item icon="layout-grid" href="{{ route('catalog.index') }}">Catálogo</flux:navlist.item>
 
-            @can('use-cart')
-                @if(count(session('cart', [])) > 0)
-                <flux:sidebar.nav variant="outline">
-                    <div class="relative inline-flex items-center mr-4">
-                        <div class="-top-0.5 absolute left-6 z-10">
-                            <p class="flex p-3 h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                                {{ count(session('cart', [])) }}
-                            </p>
-                        </div>
-                        <flux:navlist.item icon="shopping-cart" icon:variant="solid"  :href="route('cart.show')" :current="request()->routeIs('cart.show')" wire:navigate><span class="pl-2">Shopping Cart</span></flux:navlist.item>
-                    </div>
-                </flux:sidebar.nav>
-                @endif
-            @endcan
-
+@can('use-cart')
+    @if(count(session('cart', [])) > 0)
+        <flux:navlist.item 
+            icon="shopping-cart" 
+            icon:variant="solid" 
+            :href="route('cart.show')" 
+            :current="request()->routeIs('cart.show')" 
+            wire:navigate
+        >
+            <div class="flex items-center justify-between w-full">
+                <span>Shopping Cart</span>
+                
+                {{-- Alinhado à frente, limpo e sem sobrepor o ícone --}}
+                <span class="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-sm">
+                    {{ count(session('cart', [])) }}
+                </span>
+            </div>
+        </flux:navlist.item>
+    @endif
+@endcan
             @can('admin')
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
