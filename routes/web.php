@@ -60,6 +60,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('my-images', MyImageController::class)->only([
         'index', 'create', 'store', 'destroy'
     ]);
+    // 🔒 Rota corrigida usando o ID direto para evitar falhas de injeção
+    Route::get('my-images/{id}/image', [MyImageController::class, 'showImage'])
+        ->name('my-images.show-image');
 
     //CUSTOMER ORDER HISTORY
     Route::get('my-orders', [OrderController::class, 'myOrders'])->name('orders.my');

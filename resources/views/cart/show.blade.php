@@ -41,7 +41,19 @@
                                     <tr>
                                         <td class="px-6 py-4 flex items-center gap-4">
                                             <div class="w-12 h-12 bg-zinc-100 dark:bg-zinc-900 rounded p-1 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shrink-0">
-                                                <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" alt="{{ $item['name'] }}" class="max-h-full max-w-full object-contain">
+                                                {{-- 🎯 CORREÇÃO: Verifica se o item veio das Minhas Imagens Personalizadas (Privadas) --}}
+{{-- 🎯 SEPARAÇÃO REAL: Verifica se o ficheiro existe fisicamente na pasta pública do catálogo --}}
+@if(file_exists(public_path('storage/tshirt_images/' . $item['image_url'])))
+    {{-- 🌐 CASO 1: É do catálogo oficial (Pasta Pública) --}}
+    <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" 
+         alt="{{ $item['name'] }}" 
+         class="w-12 h-12 object-contain rounded">
+@else
+    {{-- 🔒 CASO 2: É das Minhas Imagens (Pasta Privada) --}}
+    <img src="{{ route('my-images.show-image', $item['tshirt_image_id'] ?? $item['id']) }}" 
+         alt="{{ $item['name'] }}" 
+         class="w-12 h-12 object-contain rounded">
+@endif
                                             </div>
                                             <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $item['name'] }}</span>
                                         </td>

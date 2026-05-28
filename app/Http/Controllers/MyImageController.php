@@ -35,47 +35,87 @@ class MyImageController extends Controller
     /**
      * 2. Processa o envio da imagem e guarda na Base de Dados
      */
+    /**
+     * Processa o envio da imagem para a pasta PRIVADA
+     *//**
+     * Processa o envio da imagem e força a gravação no caminho privado real
+     */
     public function store(Request $request)
     {
-        // Validação básica do formulário
+        // 1. Validação do formulário
         $request->validate([
             'name' => 'required|string|max:255',
-            'image_file' => 'required|image|mimes:jpeg,png,jpg|max:2048', // max 2MB
+            'image_file' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $user = Auth::user();
-        $customerId = DB::table('customers')->where('id', $user->id)->value('id') ?? $user->id;
+        $customerId = \Illuminate\Support\Facades\DB::table('customers')->where('id', $user->id)->value('id') ?? $user->id;
 
-        // Se o ficheiro veio direito, guarda-o fisicamente no servidor usando o Trait
         if ($request->hasFile('image_file')) {
-            $filename = $this->storeImage($request->file('image_file'), 'tshirt_images');
+            $file = $request->file('image_file');
+            
+            // 🎯 GERAR NOME ÚNICO (Para evitar ficheiros duplicados com o mesmo nome)
+            $filename = $customerId . '_' . time() . '.' . $file->getClientOriginalExtension();
 
-            // Insere o registo na tabela tshirt_images
+            // 📁 CAMINHO REAL ABSOLUTO: storage/app/private/tshirt_images_private
+            $destinationPath = storage_path('app/private/tshirt_images_private');
+
+            // Se a pasta física ainda não existir por algum motivo, o PHP cria-a na hora
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+
+            // 💾 Mover o ficheiro diretamente para a pasta certa usando o PHP nativo (à prova de falhas do Trait)
+            $file->move($destinationPath, $filename);
+
+            // 📝 Guardar o registo na Base de Dados com o nome do ficheiro gerado
             TshirtImage::create([
                 'customer_id' => $customerId,
                 'name' => $request->name,
-                'image_url' => $filename, // Nome único gerado pelo Trait
-                'extra_info' => 'Imagem enviada pelo cliente através do painel privado.',
+                'image_url' => $filename,
+                'extra_info' => 'Imagem privada enviada pelo cliente.',
             ]);
         }
 
-        // Redireciona de volta para a lista com uma mensagem de sucesso
-        return redirect()->route('my-images.index')->with('success', 'Imagem enviada com sucesso!');
+        return redirect()->route('my-images.index')->with('success', 'Imagem guardada com sucesso!');
     }
 
     /**
-     * 3. Permite ao cliente apagar a sua estampa
+     * Apaga a imagem da pasta PRIVADA
      */
     public function destroy($id)
     {
         $image = TshirtImage::findOrFail($id);
 
-        // Apaga o ficheiro físico do disco usando o Trait
-        $this->deleteImage($image->image_url, 'tshirt_images');
+        // 🎯 CORREÇÃO: Apaga da pasta certa
+        $this->deleteImage($image->image_url, 'tshirt_images_private');
 
-        // Apaga do banco de dados
         $image->delete();
 
-        return redirect()->route('my-images.index')->with('success', 'Imagem eliminada com sucesso!');
+        return redirect()->route('my-images.index')->with('success', 'Imagem eliminada.');
+    }
+
+public function showImage($id)
+    {
+        // 1. Procura a imagem pelo ID numérico
+        $tshirtImage = TshirtImage::findOrFail($id);
+
+        // 2. Segurança: Garante que o cliente logado é o dono desta imagem
+        $user = Auth::user();
+        $customerId = \Illuminate\Support\Facades\DB::table('customers')->where('id', $user->id)->value('id') ?? $user->id;
+        
+        if ($tshirtImage->customer_id !== $customerId) {
+            abort(403, 'Não tem autorização para ver esta imagem.');
+        }
+
+        // 3. Caminho absoluto para a pasta do teu print privado
+        $path = storage_path('app/private/tshirt_images_private/' . $tshirtImage->image_url);
+
+        // 4. Se o ficheiro existir, envia-o para o navegador desenhar no <img>
+        if (file_exists($path)) {
+            return response()->file($path);
+        }
+
+        abort(404, 'Ficheiro não encontrado no disco privado.');
     }
 }

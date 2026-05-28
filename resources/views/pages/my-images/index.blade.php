@@ -31,9 +31,9 @@
                 @foreach($images as $image)
                     <div class="overflow-hidden bg-white rounded-xl border shadow-sm dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 flex flex-col justify-between">
                         
-                        {{-- Zona da Imagem --}}
+                        {{-- 🔄 Substitui o asset antigo por esta rota privada que criámos agora --}}
                         <div class="p-4 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-center h-48 border-b border-zinc-100 dark:border-zinc-700">
-                            <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" alt="{{ $image->name }}" class="max-h-full max-w-full object-contain">
+                            <img src="{{ route('my-images.show-image', $image->id) }}" alt="{{ $image->name }}" class="max-h-full max-w-full object-contain">
                         </div>
 
                         {{-- Detalhes e Formulário de Compra --}}
