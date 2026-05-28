@@ -28,7 +28,7 @@
                 @endif
             @endcan
 
-            @can('admin')
+            @can('view-dashboard')
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
@@ -38,18 +38,15 @@
             </flux:sidebar.nav>
             @endcan
 
-            @if(Gate::check('index', \App\Models\TshirtImage::class))
+            @can('index', \App\Models\TshirtImage::class)
                 <flux:sidebar.nav>
                     <flux:sidebar.group heading="Academics" class="grid">
-                        @can('index', \App\Models\TshirtImage::class)
-                            <flux:sidebar.item icon="academic-cap" :href="route('Tshirt_image.index')" :current="request()->routeIs('Tshirt_image.index')" wire:navigate>
-                                Tshirt
-                            </flux:sidebar.item>
-                        @endcan
-
+                        <flux:sidebar.item icon="academic-cap" :href="route('TshirtImage.index')" :current="request()->routeIs('TshirtImage.index')" wire:navigate>
+                            Tshirt
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                 </flux:sidebar.nav>
-            @endif
+            @endcan
 
             <flux:spacer />
 

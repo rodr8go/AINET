@@ -4,63 +4,115 @@ namespace App\Policies;
 
 use App\Models\TshirtImage;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TshirtImagePolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Before method - admins can do everything
      */
-    public function viewAny(User $user): bool
+    public function before(?User $user, string $ability): bool|null
     {
+        if ($user?->isAdmin()) {
+            return true;  // Admin has all permissions
+        }
+        return null;  // Let specific methods decide for others
+    }
+    
+    /**
+     * Anyone (including guests) can view catalog images
+     */
+    public function viewAny(?User $user): bool
+    {
+        return true;  // Everyone can see the catalog
+    }
+    
+    /**
+     * Anyone can view a specific image (if it's catalog)
+     * Custom images have additional restrictions in the view method
+     */
+    public function view(?User $user, TshirtImage $tshirtImage): bool
+    {
+        // Catalog images: anyone can view
+        if ($tshirtImage->isCatalogImage()) {
+            return true;
+        }
+        
+        // Custom images: only owner, employees, or admins
+        if ($user && $tshirtImage->isCustomImage()) {
+            return $user->id === $tshirtImage->customer_id 
+                || $user->isEmployee() 
+                || $user->isAdmin();
+        }
+        
         return false;
     }
-
+    
     /**
-     * Determine whether the user can view the model.
+     * Who can upload catalog images? Only admins.
      */
-    public function view(User $user, TshirtImage $tshirtImage): bool
+    public function createCatalog(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
-
+    
     /**
-     * Determine whether the user can create models.
+     * Who can upload custom images? Only customers.
+     */
+    public function createCustom(User $user): bool
+    {
+        return $user->isCustomer();
+    }
+    
+    /**
+     * Generic create - determines which type based on context
      */
     public function create(User $user): bool
     {
-        return false;
+        // This is a fallback - better to use createCatalog/createCustom
+        return $user->isAdmin() || $user->isCustomer();
     }
-
+    
     /**
-     * Determine whether the user can update the model.
+     * Who can update an image?
      */
     public function update(User $user, TshirtImage $tshirtImage): bool
     {
-        return false;
+        // Catalog images: only admins
+        if ($tshirtImage->isCatalogImage()) {
+            return $user->isAdmin();
+        }
+        
+        // Custom images: only owner or admin
+        return $user->id === $tshirtImage->customer_id || $user->isAdmin();
     }
-
+    
     /**
-     * Determine whether the user can delete the model.
+     * Who can delete an image?
      */
     public function delete(User $user, TshirtImage $tshirtImage): bool
     {
-        return false;
+        // Catalog images: only admins
+        if ($tshirtImage->isCatalogImage()) {
+            return $user->isAdmin();
+        }
+        
+        // Custom images: only owner or admin
+        return $user->id === $tshirtImage->customer_id || $user->isAdmin();
     }
-
+    
     /**
-     * Determine whether the user can restore the model.
+     * Who can restore a soft-deleted image?
      */
     public function restore(User $user, TshirtImage $tshirtImage): bool
     {
-        return false;
+        return $user->isAdmin();
     }
-
+    
     /**
-     * Determine whether the user can permanently delete the model.
+     * Who can force delete an image?
      */
     public function forceDelete(User $user, TshirtImage $tshirtImage): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 }
