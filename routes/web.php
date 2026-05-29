@@ -61,16 +61,35 @@ Route::middleware(['auth'])->group(function () {
         'index', 'create', 'store', 'destroy'
     ]);
 
-    //CUSTOMER ORDER HISTORY
+   // ==================== CUSTOMER ORDER ROUTES ====================
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('my-orders', [OrderController::class, 'myOrders'])->name('orders.my');
     Route::get('my-orders/{order}', [OrderController::class, 'show'])
         ->middleware('can:view,order')
         ->name('orders.show');
-
-    //CUSTOMER RECEIPT
     Route::get('orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])
         ->middleware('can:downloadReceipt,order')
         ->name('orders.receipt');
+});
+
+// ==================== EMPLOYEE ORDER ROUTES ====================
+Route::middleware(['auth', 'can:employee'])->group(function () {
+    Route::get('employee/orders/pending', [OrderController::class, 'pending'])
+        ->name('employee.orders.pending');
+    Route::patch('employee/orders/{order}/close', [OrderController::class, 'close'])
+        ->middleware('can:update,order')
+        ->name('employee.orders.close');
+});
+
+// ==================== ADMIN ORDER ROUTES ====================
+Route::middleware(['auth', 'can:admin'])->group(function () {
+    Route::get('admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
+    Route::patch('admin/orders/{order}/status', [OrderController::class, 'updateStatus'])
+        ->name('admin.orders.status');
+    Route::post('admin/orders/{order}/cancel', [OrderController::class, 'cancel'])
+        ->middleware('can:cancel,order')
+        ->name('admin.orders.cancel');
+});
 
     //CUSTOMER CHECKOUT
     Route::middleware(['verified'])->group(function () {

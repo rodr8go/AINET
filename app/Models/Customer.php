@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
+    'id',
     'nif',
     'address',
     'default_payment_type',
@@ -32,7 +33,8 @@ class Customer extends Model
     {
         return [
             'id' => 'int',
-            'custom',
+            'custom' => 'array',
+            'deleted_at' => 'datetime',
         ];
     }
 

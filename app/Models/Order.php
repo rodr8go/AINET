@@ -70,4 +70,17 @@ class Order extends Model
     {
         return $this->status === self::STATUS_CANCELED;
     }
+
+    // ===== REMOVE THIS METHOD ENTIRELY OR USE THE FIXED VERSION =====
+    // Option 1: DELETE this method completely
+    
+    // Option 2: Use this fixed version:
+    public function getReceiptFullUrlAttribute(): ?string
+    {
+        $receiptUrl = $this->getAttribute('receipt_url');
+        if ($receiptUrl) {
+            return asset('storage/pdf_receipts/' . $receiptUrl);
+        }
+        return null;
+    }
 }
