@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 
 #[Table(
-    table: 'order_items',
     key: 'id',
     keyType: 'int',
     incrementing: true,

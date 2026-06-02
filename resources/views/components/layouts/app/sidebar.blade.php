@@ -10,91 +10,197 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
+            {{-- Public Menu Items --}}
             <flux:navlist.item icon="home" href="{{ route('home') }}">Início</flux:navlist.item>
             <flux:navlist.item icon="layout-grid" href="{{ route('catalog.index') }}">Catálogo</flux:navlist.item>
 
+            {{-- Shopping Cart with Badge --}}
             @can('use-cart')
                 @if(count(session('cart', [])) > 0)
-                <flux:sidebar.nav variant="outline">
-                    <div class="relative inline-flex items-center mr-4">
-                        <div class="-top-0.5 absolute left-6 z-10">                     
+                    <flux:navlist.item 
+                        icon="shopping-cart" 
+                        icon:variant="solid" 
+                        :href="route('cart.show')" 
+                        :current="request()->routeIs('cart.show')" 
+                        wire:navigate
+                    >
+                        <div class="flex items-center justify-between w-full">
+                            <span>Shopping Cart</span>
+                            <span class="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-sm">
                                 {{ count(session('cart', [])) }}
-                            </p>
+                            </span>
                         </div>
-                        <flux:navlist.item icon="shopping-cart" icon:variant="solid"  :href="route('cart.show')" :current="request()->routeIs('cart.show')" wire:navigate>
-                            <span class="pl-2">Shopping Cart</span>
-                        </flux:navlist.item>
-                    </div>
-                </flux:sidebar.nav>
+                    </flux:navlist.item>
                 @endif
             @endcan
 
-            @can('admin')
-            <flux:sidebar.nav>
-                <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
-                </flux:sidebar.group>
-            </flux:sidebar.nav>
-            @endcan
-
-            @if(Gate::check('index', \App\Models\TshirtImage::class))
-                <flux:sidebar.nav>
-                    <flux:sidebar.group heading="Academics" class="grid">
-                        @can('index', \App\Models\TshirtImage::class)
-                            <flux:sidebar.item icon="academic-cap" :href="route('Tshirt_image.index')" :current="request()->routeIs('Tshirt_image.index')" wire:navigate>
-                                Tshirt
+            {{-- ===== CUSTOMER MENU SECTION ===== --}}
+            @auth
+                @can('use-cart')
+                    <flux:sidebar.nav>
+                        <flux:sidebar.group heading="My Account" class="grid">
+                            {{-- My Custom Images --}}
+                            <flux:sidebar.item 
+                                icon="photo" 
+                                :href="route('my-images.index')" 
+                                :current="request()->routeIs('my-images.*')" 
+                                wire:navigate>
+                                My Custom Images
                             </flux:sidebar.item>
-                        @endcan
+                            
+                            {{-- My Orders --}}
+                            <flux:sidebar.item 
+                                icon="shopping-bag" 
+                                :href="route('orders.my')" 
+                                :current="request()->routeIs('orders.my')" 
+                                wire:navigate>
+                                My Orders
+                            </flux:sidebar.item>
+                        </flux:sidebar.group>
+                    </flux:sidebar.nav>
+                @endcan
+            @endauth
+
+            {{-- Admin Dashboard Link --}}
+            @can('admin')
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="Platform" class="grid">
+                        <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            Dashboard
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                 </flux:sidebar.nav>
-            @endif
+            @endcan
+
+            {{-- Admin Management Section --}}
+            @can('admin')
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="Management" class="grid">
+                        <flux:sidebar.item icon="users" :href="route('users.index')" wire:navigate>
+                            Manage Users
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="shopping-bag" :href="route('customers.index')" wire:navigate>
+                            Manage Customers
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="photo" :href="route('catalog-images.index')" wire:navigate>
+                            Catalog Images
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="tag" :href="route('admin.categories.index')" wire:navigate>
+                            Categories
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="swatch" :href="route('admin.colors.index')" wire:navigate>
+                            Colors
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="currency-euro" :href="route('prices.edit')" wire:navigate>
+                            Price Settings
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="chart-bar" :href="route('statistics.index')" wire:navigate>
+                            Statistics
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="truck" :href="route('admin.orders.index')" wire:navigate>
+                            All Orders
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                </flux:sidebar.nav>
+            @endcan
 
             <flux:spacer />
 
             @auth
-                <!-- Desktop User Menu -->
                 <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
-                
-                <!-- Mobile User Menu (inside sidebar) -->
-                <div class="lg:hidden border-t border-zinc-200 dark:border-zinc-700 pt-4 mt-4">
-                    <div class="flex items-center gap-3 px-2 py-2">
-                        <flux:avatar
-                            :name="auth()->user()->name"
-                            :initials="auth()->user()->initials()"
-                            size="md"
-                        />
-                        <div class="flex-1 text-sm">
-                            <div class="font-medium">{{ auth()->user()->name }}</div>
-                            <div class="text-zinc-500 dark:text-zinc-400 text-xs">{{ auth()->user()->email }}</div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-2">
-                        <flux:navlist.item icon="cog" :href="route('profile.edit')" wire:navigate>
-                            {{ __('Settings') }}
-                        </flux:navlist.item>
-                        
-                        <form method="POST" action="{{ route('logout') }}" class="w-full">
-                            @csrf
-                            <flux:navlist.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-left">
-                                {{ __('Log out') }}
-                            </flux:navlist.item>
-                        </form>
-                    </div>
-                </div>
             @else
-                <!-- Mobile Login (inside sidebar) -->
-                <div class="lg:hidden">
-                    <flux:navlist.item icon="user" :href="route('login')" wire:navigate>
-                        Login
-                    </flux:navlist.item>
-                </div>
+                <flux:sidebar.item icon="user" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>
+                    Login
+                </flux:sidebar.item>
             @endauth
         </flux:sidebar>
 
-        <!-- Main content area - no duplicate headers needed -->
+        {{-- Mobile User Menu --}}
+        @auth
+        <flux:header class="lg:hidden">
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+            <flux:spacer />
+            <flux:dropdown position="top" align="end">
+                <flux:profile
+                    :initials="auth()->user()->initials()"
+                    :avatar="auth()->user()->photo_url ? auth()->user()->photo_full_url : null"
+                    icon-trailing="chevron-down"
+                />
+                <flux:menu>
+                    <flux:menu.radio.group>
+                        <div class="p-0 text-sm font-normal">
+                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                <flux:avatar
+                                    :name="auth()->user()->name"
+                                    :initials="auth()->user()->initials()"
+                                    :src="auth()->user()->photo_url ? auth()->user()->photo_full_url : null"
+                                />
+                                <div class="grid flex-1 text-start text-sm leading-tight">
+                                    <flux:heading class="truncate">{{ auth()->user()->name }}</flux:heading>
+                                    <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
+                                </div>
+                            </div>
+                        </div>
+                    </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    {{-- Mobile Customer Menu Items --}}
+                    @can('use-cart')
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('my-images.index')" icon="photo" wire:navigate>
+                                My Custom Images
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('orders.my')" icon="shopping-bag" wire:navigate>
+                                My Orders
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+                        <flux:menu.separator />
+                    @endcan
+
+                    {{-- Employee Mobile Items --}}
+                    @can('employee')
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('employee.orders.pending')" icon="truck" wire:navigate>
+                                Pending Orders
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+                        <flux:menu.separator />
+                    @endcan
+
+                    <flux:menu.radio.group>
+                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                            Settings
+                        </flux:menu.item>
+                    </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    <form method="POST" action="{{ route('logout') }}" class="w-full">
+                        @csrf
+                        <flux:menu.item
+                            as="button"
+                            type="submit"
+                            icon="arrow-right-start-on-rectangle"
+                            class="w-full cursor-pointer"
+                            data-test="logout-button"
+                        >
+                            Log out
+                        </flux:menu.item>
+                    </form>
+                </flux:menu>
+            </flux:dropdown>
+        </flux:header>
+        @else
+        <flux:header class="lg:hidden">
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+            <flux:spacer />
+            <flux:sidebar.item position="top" align="end" icon="user" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>
+                Login
+            </flux:sidebar.item>
+        </flux:header>
+        @endauth
+
         {{ $slot }}
 
         @persist('toast')
