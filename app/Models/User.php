@@ -25,12 +25,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'gender',
     'blocked',
     'custom',
-    'photo_url'])]
+    'photo_url'
+])]
 #[Hidden([
     'password',
     'two_factor_secret',
     'two_factor_recovery_codes',
-    'remember_token'])]
+    'remember_token'
+])]
 
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -65,7 +67,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
@@ -80,19 +82,23 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     //====================HELPER METHODS(Vericar user type/blocked)=======
-    public function isCustomer(): bool{
-        return $this->user_type === 'C';
+    public function isCustomer(): bool
+    {
+    return $this->user_type === 'C';
     }
-    
-    public function isEmployee(): bool{
+
+    public function isEmployee(): bool
+    {
         return $this->user_type === 'F';
     }
-    
-    public function isAdmin(): bool{
+
+    public function isAdmin(): bool
+    {
         return $this->user_type === 'A';
     }
-    
-    public function isBlocked(): bool{
+
+    public function isBlocked(): bool
+    {
         return $this->blocked;
     }
 }
