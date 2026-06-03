@@ -6,7 +6,7 @@ use App\Models\TshirtImage;
 use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-
+use Illuminate\Support\Facades\DB; // 🎯 Importado para ler a tabela de preços
 
 class CartController extends Controller
 {
@@ -14,10 +14,14 @@ class CartController extends Controller
     public function show()
     {
         $cart = session()->get('cart', []);
-        return view('cart.show', compact('cart'));
+        
+        // Vamos passar também as regras de preço para o Blade do carrinho conseguir ler o qty_discount se precisar
+        $priceRules = DB::table('prices')->first();
+        
+        return view('cart.show', compact('cart', 'priceRules'));
     }
 
-    // Adicionar um produto ao carrinho
+    // Adicionar um produto ao carrinho com desconto dinâmico
     public function add(Request $request, TshirtImage $tshirtImage)
     {
         $request->validate([
@@ -31,7 +35,14 @@ class CartController extends Controller
         // Criar uma chave única para o item baseada na imagem, cor e tamanho
         $itemKey = $tshirtImage->id . '-' . $request->color_code . '-' . $request->size;
 
-        $color = Color::find($request->color_code);
+        // Buscar as informações da cor
+        $color = Color::where('code', $request->color_code)->first();
+
+        // 💰 BUSCAR REGRAS DE PREÇO DA BASE DE DADOS
+        $priceRules = DB::table('prices')->first();
+        $basePrice = $priceRules ? (float) $priceRules->unit_price_catalog : 10.00;
+        $discountPrice = $priceRules ? (float) $priceRules->unit_price_catalog_discount : 8.50;
+        $qtyDiscountLimit = $priceRules ? (int) $priceRules->qty_discount : 5;
 
         // Se o item já existe no carrinho, incrementa a quantidade
         if (isset($cart[$itemKey])) {
@@ -46,9 +57,16 @@ class CartController extends Controller
                 'color_name' => $color->name,
                 'size' => $request->size,
                 'qty' => $request->qty,
-                // O preço unitário real será calculado dinamicamente com base nos descontos na Fase 4
-                'unit_price' => 10.00, 
+                'unit_price' => $basePrice, // Será atualizado logo abaixo
             ];
+        }
+
+        // 🔄 RECALCULAR O PREÇO UNITÁRIO BASEADO NA QUANTIDADE ACUMULADA
+        // Isto garante que se o utilizador adicionar 3 MAs e depois mais 3 MAs, ele atinge as 6 un. e ganha o desconto!
+        if ($cart[$itemKey]['qty'] >= $qtyDiscountLimit) {
+            $cart[$itemKey]['unit_price'] = $discountPrice;
+        } else {
+            $cart[$itemKey]['unit_price'] = $basePrice;
         }
 
         session()->put('cart', $cart);
@@ -58,13 +76,13 @@ class CartController extends Controller
             ->with('alert-msg', "T-shirt {$tshirtImage->name} adicionada ao carrinho!");
     }
 
-    // Remover um item do carrinho
-    public function remove($itemKey)
+    // Remover um item do carrinho (Nome do parâmetro ajustado para bater certo com a rota {itemId})
+    public function remove($itemId)
     {
         $cart = session()->get('cart', []);
 
-        if (isset($cart[$itemKey])) {
-            unset($cart[$itemKey]);
+        if (isset($cart[$itemId])) {
+            unset($cart[$itemId]);
             session()->put('cart', $cart);
         }
 

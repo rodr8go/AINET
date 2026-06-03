@@ -61,6 +61,17 @@
                 @endcan
             @endauth
 
+            {{-- ===== 🛠️ EMPLOYEE MENU SECTION (Adicionado para Desktop) ===== --}}
+            @can('employee')
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="Employee Area" class="grid">
+                        <flux:sidebar.item icon="truck" :href="route('employee.orders.pending')" :current="request()->routeIs('employee.orders.pending')" wire:navigate>
+                            Pending Orders
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                </flux:sidebar.nav>
+            @endcan
+
             {{-- Admin Dashboard Link --}}
             @can('admin')
                 <flux:sidebar.nav>
@@ -85,10 +96,10 @@
                         <flux:sidebar.item icon="photo" :href="route('catalog-images.index')" wire:navigate>
                             Catalog Images
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="tag" :href="route('admin.categories.index')" wire:navigate>
+                        <flux:sidebar.item icon="tag" :href="route('categories.index')" wire:navigate>
                             Categories
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="swatch" :href="route('admin.colors.index')" wire:navigate>
+                        <flux:sidebar.item icon="swatch" :href="route('colors.index')" wire:navigate>
                             Colors
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="currency-euro" :href="route('prices.edit')" wire:navigate>
