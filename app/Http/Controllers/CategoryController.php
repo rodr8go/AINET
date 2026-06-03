@@ -2,138 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\CategoryFormRequest;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
 
-class CategoryController extends Controller implements HasMiddleware
+class CategoryController extends Controller
 {
-    public static function middleware(): array
-    {
-        return [
-            new Middleware('can:viewAny,App\Models\Category', only: ['index', 'show']),
-            new Middleware('can:create,App\Models\Category', only: ['create', 'store']),
-            new Middleware('can:update,App\Models\Category', only: ['edit', 'update']),
-            new Middleware('can:delete,App\Models\Category', only: ['destroy']),
-        ];
-    }
-
-    /**
-     * Display a listing of categories (public)
-     */
+    // 1. Listar todas as categorias (Visão do Admin)
     public function index(): View
     {
-        $categories = Category::withCount('tshirtImages')
-            ->orderBy('name')
-            ->get();
-        
-        return view('categories.index', compact('categories'));
+        $categories = Category::orderBy('name')->get();
+        return view('admin.categories.index', compact('categories'));
     }
 
-    /**
-     * Show the form for creating a new category (admin only)
-     */
+    // 2. Mostrar formulário para criar nova categoria
     public function create(): View
     {
-        return view('categories.create');
+        return view('admin.categories.create');
     }
 
-    /**
-     * Store a newly created category (admin only)
-     */
-    public function store(CategoryFormRequest $request): RedirectResponse
+    // 3. Gravar a nova categoria na BD
+    public function store(Request $request): RedirectResponse
     {
-        $validatedData = $request->validated();
-        
-        $category = new Category();
-        $category->name = $validatedData['name'];
-        
-        // Handle image upload
-        if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('categories', $filename, 'public');
-            $category->image_url = $filename;
-        }
-        
-        $category->save();
-        
+        $validated = $request->validate([
+            'name' => 'required|string|unique:categories,name|max:50',
+        ]);
+
+        Category::create($validated);
+
         return redirect()->route('admin.categories.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', "Category {$category->name} has been created successfully!");
+            ->with('toast', 'Categoria criada com sucesso!');
     }
 
-    /**
-     * Display the specified category (public)
-     */
-    public function show(Category $category): View
-    {
-        $category->load('tshirtImages');
-        return view('categories.show', compact('category'));
-    }
-
-    /**
-     * Show the form for editing a category (admin only)
-     */
+    // 4. Mostrar formulário de edição
     public function edit(Category $category): View
     {
-        return view('categories.edit', compact('category'));
+        return view('admin.categories.edit', compact('category'));
     }
 
-    /**
-     * Update the specified category (admin only)
-     */
-    public function update(CategoryFormRequest $request, Category $category): RedirectResponse
+    // 5. Atualizar a categoria na BD
+    public function update(Request $request, Category $category): RedirectResponse
     {
-        $validatedData = $request->validated();
-        
-        $category->name = $validatedData['name'];
-        
-        // Handle image upload
-        if ($request->hasFile('image_file')) {
-            // Delete old image
-            if ($category->image_url) {
-                Storage::disk('public')->delete('categories/' . $category->image_url);
-            }
-            
-            $file = $request->file('image_file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('categories', $filename, 'public');
-            $category->image_url = $filename;
-        }
-        
-        $category->save();
-        
+        $validated = $request->validate([
+            'name' => 'required|string|unique:categories,name,' . $category->id . '|max:50',
+        ]);
+
+        $category->update($validated);
+
         return redirect()->route('admin.categories.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', "Category {$category->name} has been updated successfully!");
+            ->with('toast', 'Categoria atualizada com sucesso!');
     }
 
-    /**
-     * Remove the specified category (admin only)
-     */
+    // 6. Remover a categoria
     public function destroy(Category $category): RedirectResponse
     {
-        try {
-            // Delete associated image
-            if ($category->image_url) {
-                Storage::disk('public')->delete('categories/' . $category->image_url);
-            }
-            
-            $category->delete();
-            
-            return redirect()->route('admin.categories.index')
-                ->with('alert-type', 'success')
-                ->with('alert-msg', "Category {$category->name} has been deleted successfully!");
-        } catch (\Exception $error) {
-            return redirect()->back()
-                ->with('alert-type', 'danger')
-                ->with('alert-msg', "Cannot delete category because it has associated t-shirt images!");
+        // Opcional: Impedir de apagar se houver t-shirts associadas a esta categoria
+        if ($category->tshirtImages()->exists()) {
+            return redirect()->back()->with('error', 'Não podes apagar uma categoria que tem t-shirts associadas!');
         }
+
+        $category->delete();
+
+        return redirect()->route('admin.categories.index')
+            ->with('toast', 'Categoria removida com sucesso!');
     }
 }
