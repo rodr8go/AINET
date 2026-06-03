@@ -15,16 +15,20 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\PriceController;
 use App\Http\Controllers\MyImageController;
+use App\Livewire\ProductShow;
+
 
 //======================================= PUBLIC ROUTES
 
 //HOME PAGE
 Route::view('/', 'home')->name('home');
 
-// Catálogo da Loja
-Route::get('catalogo', [CatalogController::class, 'index'])->name('catalog.index');
-Route::get('catalogo/{tshirtImage}', [CatalogController::class, 'show'])->name('catalog.show');
 
+// 1. Catálogo Geral (Controller Clássico)
+Route::get('catalogo', [CatalogController::class, 'index'])->name('catalog.index');
+
+// 2. Página da T-shirt (Livewire Component)
+Route::get('catalogo/{id}', ProductShow::class)->name('catalog.show');
 //CATEGORIAS
 Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');

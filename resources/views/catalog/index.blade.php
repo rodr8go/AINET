@@ -43,42 +43,19 @@
                         @foreach($images as $img)
                             <div class="flex flex-col bg-white rounded-xl border shadow-sm dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 overflow-hidden">
                                 
-                                <div class="relative bg-zinc-100 aspect-square dark:bg-zinc-900 flex items-center justify-center p-4">
-                                    <img src="{{ asset('storage/tshirt_images/' . $img->image_url) }}" alt="{{ $img->name }}" class="object-contain max-h-full rounded-md shadow-sm">
-                                </div>
+                                <a href="{{ route('catalog.show', $img->id) }}" class="relative bg-zinc-100 aspect-square dark:bg-zinc-900 flex items-center justify-center p-4 group overflow-hidden">
+                                    <img src="{{ asset('storage/tshirt_images/' . $img->image_url) }}" alt="{{ $img->name }}" class="object-contain max-h-full rounded-md shadow-sm transition duration-300 group-hover:scale-105">
+                                </a>
 
                                 <div class="flex flex-col flex-1 p-4">
                                     <h4 class="text-base font-bold text-zinc-900 dark:text-zinc-100">{{ $img->name }}</h4>
                                     <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 flex-1">{{ $img->description ?? 'Sem descrição' }}</p>
 
-                                    <form action="{{ route('cart.add', $img->id) }}" method="POST" class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-700 space-y-3">
-                                        @csrf
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Cor:</label>
-                                                <select name="color_code" class="mt-1 block w-full rounded-md text-sm border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900" required>
-                                                    @foreach($colors as $color)
-                                                        <option value="{{ $color->code }}">{{ $color->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Tamanho:</label>
-                                                <select name="size" class="mt-1 block w-full rounded-md text-sm border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900" required>
-                                                    <option value="XS">XS</option>
-                                                    <option value="S">S</option>
-                                                    <option value="M" selected>M</option>
-                                                    <option value="L">L</option>
-                                                    <option value="XL">XL</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <input type="hidden" name="qty" value="1">
-                                        <flux:button type="submit" variant="filled" color="indigo" icon="shopping-cart" class="w-full mt-2">
-                                            Adicionar
-                                        </flux:button>
-                                    </form>
+                                    <flux:button href="{{ route('catalog.show', $img->id) }}" variant="filled" color="indigo" class="w-full mt-4">
+                                        Ver & Personalizar
+                                    </flux:button>
                                 </div>
+                                
                             </div>
                         @endforeach
                     </div>
