@@ -1,96 +1,131 @@
-<div class="py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        
+<div class="py-10 mx-auto max-w-7xl sm:px-6 lg:px-8">
+
     <div class="mb-8">
-        <flux:button href="{{ route('catalog.index') }}" icon="arrow-left" variant="subtle">
+        <flux:button href="{{ route('catalog.index') }}" icon="arrow-left" variant="subtle" class="text-zinc-400 hover:text-zinc-200 bg-transparent border-transparent hover:bg-zinc-800/50">
             Voltar ao Catálogo
         </flux:button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+    <div class="bg-zinc-900/60 border border-transparent rounded-3xl p-6 lg:p-8 w-full shadow-2xl backdrop-blur-md">
         
-        <div class="lg:col-span-5 w-full max-w-md">
-            <div class="relative bg-white aspect-square flex items-center justify-center p-6 overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
-                
-                <div class="relative w-full h-full flex items-center justify-center">
-                    <img src="{{ asset('storage/tshirt_base/' . $selectedColor . '.jpg') }}" 
-                         class="absolute top-0 left-0 w-full h-full object-contain z-10" 
-                         alt="T-shirt Base">
+        <div class="flex flex-col lg:flex-row items-start justify-between gap-12 lg:gap-24 w-full">
+
+            <div class="shrink-0 mx-auto lg:mx-0" style="width: 400px;">
+                <div class="bg-zinc-950/40 rounded-2xl border border-transparent shadow-inner flex items-center justify-center p-8 relative"
+                     style="height: 420px;">
                     
-                    <div class="absolute z-20 flex items-center justify-center" 
-                         style="top: 22%; left: 30%; width: 40%; height: 40%;">
-                        <img src="{{ asset('storage/tshirt_images/' . $tshirt->image_url) }}" 
-                             alt="{{ $tshirt->name }}" 
-                             class="max-w-full max-h-full object-contain drop-shadow-sm">
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <img src="{{ asset('storage/tshirt_base/' . $selectedColor . '.jpg') }}"
+                             class="absolute inset-0 w-full h-full object-contain z-10"
+                             alt="T-shirt Base">
+                        
+                        <div class="absolute z-20 flex items-center justify-center"
+                             style="top: 22%; left: 30%; width: 40%; height: 40%;">
+                            <img src="{{ asset('storage/tshirt_images/' . $tshirt->image_url) }}"
+                                 alt="{{ $tshirt->name }}"
+                                 class="max-w-full max-h-full object-contain drop-shadow-md">
+                        </div>
+                    </div>
+
+                    <div wire:loading class="absolute inset-0 bg-zinc-950/80 flex items-center justify-center z-30 rounded-2xl backdrop-blur-xs">
+                        <flux:icon icon="arrow-path" class="w-8 h-8 animate-spin text-indigo-500" />
                     </div>
                 </div>
+            </div>
 
-                <div wire:loading class="absolute inset-0 bg-white/70 flex items-center justify-center z-30 rounded-xl">
-                    <flux:icon icon="arrow-path" class="w-8 h-8 animate-spin text-indigo-600" />
+            <div class="flex-1 w-full space-y-6 pt-2 lg:max-w-xl">
+
+                <div class="space-y-3 pb-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                        {{ $tshirt->category?->name ?? 'Música' }}
+                    </span>
+                    
+                    <h1 class="text-4xl font-black tracking-tight text-zinc-100">
+                        {{ $tshirt->name }}
+                    </h1>
+                    
+                    <p class="text-sm text-zinc-400 leading-relaxed">
+                        {{ $tshirt->description ?? 'Dê vida ao seu estilo com este design exclusivo. Algodão premium de alta durabilidade e estampa com definição reforçada.' }}
+                    </p>
                 </div>
-            </div>
-        </div>
 
-        <div class="lg:col-span-7 w-full space-y-6">
-            
-            <div class="space-y-3">
-                <h1 class="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-                    {{ $tshirt->name }}
-                </h1>
-                <p class="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                    {{ $tshirt->description ?? 'Sem descrição disponível para este produto.' }}
-                </p>
-            </div>
+                <form action="{{ route('cart.add', $tshirt->id) }}" method="POST" class="space-y-6 w-full max-w-md">
+                    @csrf
 
-            <div class="bg-zinc-100 dark:bg-zinc-900/50 p-4 rounded-xl w-fit border border-zinc-200 dark:border-zinc-800">
-                <p class="text-xs font-bold tracking-wider uppercase text-zinc-500 dark:text-zinc-400">Preço Unitário</p>
-                <p class="text-3xl font-black text-indigo-600 dark:text-indigo-400 mt-1">19,90 €</p>
-            </div>
-
-            <form action="{{ route('cart.add', $tshirt->id) }}" method="POST" class="pt-6 border-t border-zinc-200 dark:border-zinc-700 space-y-6">
-                @csrf
-                
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">Cor</label>
-                        <select wire:model.live="selectedColor" 
-                                name="color_code" 
-                                class="block w-full rounded-lg text-sm border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 py-2.5 px-3 shadow-xs focus:ring-2 focus:ring-indigo-500 transition cursor-pointer" required>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400">Cor da T-Shirt</label>
+                        <select wire:model.live="selectedColor" name="color_code"
+                                class="block w-full rounded-xl text-sm font-semibold border border-zinc-800 bg-zinc-800 text-zinc-100 py-3 px-4 focus:ring-2 focus:ring-indigo-500 transition cursor-pointer shadow-md" required>
                             @foreach($colors as $color)
                                 <option value="{{ $color->code }}">{{ $color->name }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">Tamanho</label>
-                        <select name="size" 
-                                class="block w-full rounded-lg text-sm border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 py-2.5 px-3 shadow-xs focus:ring-2 focus:ring-indigo-500 transition cursor-pointer" required>
-                            <option value="XS">XS</option>
-                            <option value="S">S</option>
-                            <option value="M" selected>M</option>
-                            <option value="L">L</option>
-                            <option value="XL">XL</option>
-                        </select>
+                    <div class="space-y-2.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400">Tamanho</label>
+                        <div class="flex gap-2">
+                            @foreach(['XS','S','M','L','XL'] as $size)
+                            <label class="relative cursor-pointer select-none">
+                                <input type="radio" id="size_{{ $size }}" name="size" value="{{ $size }}" class="sr-only" wire:model.live="selectedSize">
+                                <span class="flex items-center justify-center w-12 h-12 rounded-xl border border-zinc-800 text-sm font-bold transition-all duration-150
+                                    {{ $selectedSize === $size 
+                                        ? 'border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
+                                        : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700/50' 
+                                    }}">
+                                    {{ $size }}
+                                </span>
+                            </label>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">Quantidade</label>
-                        <input type="number" 
-                               name="qty" 
-                               min="1" 
-                               max="10" 
-                               value="1" 
-                               class="block w-full rounded-lg text-sm border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 py-2 px-3 shadow-xs focus:ring-2 focus:ring-indigo-500 transition" required>
+                    <div class="space-y-2" x-data="{ count: @entangle('qty').live }">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-zinc-400">Quantidade</label>
+                        <div class="flex items-center bg-zinc-800 border border-zinc-800 w-fit rounded-xl p-1 shadow-md">
+                            <button type="button" @click="if(count > 1) count--" 
+                                    class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 rounded-lg font-bold transition select-none">
+                                -
+                            </button>
+                            
+                            <input type="number" name="qty" x-model="count" min="1" max="10" readonly
+                                   class="w-12 text-center bg-transparent border-0 text-zinc-100 font-black focus:ring-0 p-0 text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                            
+                            <button type="button" @click="if(count < 10) count++" 
+                                    class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-zinc-100 hover:bg-zinc-700 rounded-lg font-bold transition select-none">
+                                +
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="pt-2">
-                    <flux:button type="submit" variant="filled" color="indigo" icon="shopping-cart" class="w-full text-base py-4 font-bold shadow-md">
-                        Adicionar ao Carrinho
-                    </flux:button>
-                </div>
-            </form>
+                    <div class="pt-2">
+                        <p class="text-xs font-bold tracking-wider uppercase text-zinc-400">Preço unitário:</p>
+                        <div class="flex items-baseline gap-3 mt-1">
+                            @if($priceRules && $qty >= $priceRules->qty_discount && $priceRules->unit_price_catalog_discount < $priceRules->unit_price_catalog)
+                                <p class="text-4xl font-black text-emerald-400 tracking-tight tabular-nums">
+                                    {{ number_format($priceRules->unit_price_catalog_discount, 2, ',', '.') }} €
+                                </p>
+                                <p class="text-base font-semibold text-zinc-500 line-through tabular-nums">
+                                    {{ number_format($priceRules->unit_price_catalog, 2, ',', '.') }} €
+                                </p>
+                            @else
+                                <p class="text-4xl font-black text-zinc-100 tracking-tight tabular-nums">
+                                    {{ $priceRules ? number_format($priceRules->unit_price_catalog, 2, ',', '.') : '10,00' }} €
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <flux:button type="submit" variant="filled" color="zinc" icon="shopping-cart"
+                                     class="w-full bg-white hover:bg-zinc-200 text-zinc-950 font-extrabold text-base py-4 rounded-xl shadow-lg border-transparent transition-all transform active:scale-[0.99] justify-center">
+                            Adicionar ao Carrinho
+                        </flux:button>
+                    </div>
+                </form>
+
+            </div>
         </div>
-
+        
     </div>
 </div>
