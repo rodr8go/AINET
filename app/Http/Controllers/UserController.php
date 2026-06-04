@@ -48,7 +48,7 @@ class UserController extends Controller implements HasMiddleware
         
         $users = $usersQuery->paginate(20)->withQueryString();
         
-        return view('users.index', compact('users', 'filterByName', 'filterByType'));
+        return view('admin.users.index', compact('users', 'filterByName', 'filterByType'));
     }
 
     /**
