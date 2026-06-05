@@ -157,7 +157,7 @@ Route::middleware(['auth'])->group(function () {
         // Cria um "alias" para os clientes também, por segurança
         Route::get('admin/customers-compat', [CustomerController::class, 'index'])->name('customers.index');
         // Category management (full CRUD)
-        Route::resource('admin/categories', CategoryController::class)->except(['index', 'show'])
+        Route::resource('admin/categories', CategoryController::class)->except(['show'])
             ->names([
                 'index' => 'admin.categories.index',
                 'create' => 'admin.categories.create',
@@ -169,7 +169,7 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Color management (full CRUD)
-        Route::resource('admin/colors', ColorController::class)->except(['index', 'show'])
+        Route::resource('admin/colors', ColorController::class)->except(['show'])
             ->names([
                 'index' => 'admin.colors.index',
                 'create' => 'admin.colors.create',

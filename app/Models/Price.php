@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 class Price extends Model
 {
+    public $timestamps = false;
     //====================CASTS===========================
     protected function casts(): array
     {
