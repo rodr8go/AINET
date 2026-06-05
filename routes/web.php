@@ -169,7 +169,7 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Color management (full CRUD)
-        Route::resource('admin/colors', ColorController::class)->except(['index', 'show'])
+        Route::resource('admin/colors', ColorController::class)->except(['show'])
             ->names([
                 'index' => 'admin.colors.index',
                 'create' => 'admin.colors.create',

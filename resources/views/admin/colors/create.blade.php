@@ -7,9 +7,9 @@
             @csrf
 
             <flux:input name="code" 
-                        label="Código da Cor (Max 2 caracteres)" 
+                        label="Código da Cor (Max 6 caracteres)" 
                         placeholder="Ex: PT, FA, BR" 
-                        maxlength="2" 
+                        maxlength="6" 
                         value="{{ old('code') }}" 
                         required />
 

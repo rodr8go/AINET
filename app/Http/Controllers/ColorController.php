@@ -26,7 +26,7 @@ class ColorController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|unique:colors,code|max:2', // Ex: 'FA'
+            'code' => 'required|string|unique:colors,code|size:6', // Ex: 'FA'
             'name' => 'required|string|max:50',
         ]);
 
