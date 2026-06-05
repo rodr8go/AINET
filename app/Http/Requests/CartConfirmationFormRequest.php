@@ -24,7 +24,11 @@ class CartConfirmationFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'student_number' => 'required|exists:students,number'
+            // Altera para aceitar as strings exatas da API:
+            'payment_type' => 'required|in:Visa,PayPal,MB WAY',
+            'payment_ref'  => 'required|string',
+            'nif'          => 'nullable|digits:9',
+            'notes'        => 'nullable|string',
         ];
     }
 

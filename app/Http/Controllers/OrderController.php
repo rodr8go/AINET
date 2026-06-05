@@ -86,12 +86,11 @@ class OrderController extends Controller
      */
     public function pending()
     {
-        // Procura as encomendas com estado 'pending' (ajusta o nome do campo 'status' se for diferente na BD)
         $orders = Order::where('status', 'pending')
-            ->orderBy('created_at', 'desc')
+            ->with('customer.user')
+            ->orderBy('date', 'desc')
             ->get();
 
-        // Retorna a vista onde os funcionários trabalham
         return view('employee.orders.pending', compact('orders'));
     }
 
@@ -108,6 +107,9 @@ class OrderController extends Controller
         // Altera o estado
         $order->status = 'closed';
         $order->save();
+
+        // Dispara automaticamente o e-mail verde de sucesso com o recibo em PDF anexado!
+        $this->receiptService->sendOrderEmail($order, 'closed');
 
         // Redireciona de volta para a lista com uma mensagem de sucesso
         return redirect()->route('employee.orders.pending')
@@ -139,14 +141,15 @@ class OrderController extends Controller
 
         // Filter by date range
         if ($request->filled('date_from')) {
-            $ordersQuery->whereDate('created_at', '>=', $request->date_from);
+            $ordersQuery->whereDate('date', '>=', $request->date_from);
         }
 
         if ($request->filled('date_to')) {
-            $ordersQuery->whereDate('created_at', '<=', $request->date_to);
+            $ordersQuery->whereDate('date', '<=', $request->date_to);
         }
 
-        $orders = $ordersQuery->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        $orders = $ordersQuery->orderBy('date', 'desc')->paginate(20)->withQueryString();
 
         return view('admin.orders.index', compact('orders'));
     }

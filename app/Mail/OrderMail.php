@@ -37,7 +37,7 @@ class OrderMail extends Mailable
     public function content(): Content
     {
         // Use single view for both types
-        return new Content(view: 'emails.order-status');
+        return new Content(view: 'emails.orderStatus');
     }
 
     public function attachments(): array

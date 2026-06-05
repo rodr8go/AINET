@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 
 class OrderItem extends Model
 {
+    public $timestamps = false;
     //====================SIZES==========================
     public const SIZES = ['XS', 'S', 'M', 'L', 'XL'];
     

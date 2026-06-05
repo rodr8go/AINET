@@ -102,8 +102,8 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('customers/{customer}/toggle-block', [CustomerController::class, 'toggleBlock'])->name('admin.customers.toggle-block');
     });
 
-    //CUSTOMER CHECKOUT
-    Route::middleware(['verified'])->group(function () {
+    // ==================== CUSTOMER CHECKOUT ====================
+    Route::middleware(['auth'])->group(function () {
         Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('checkout', [CheckoutController::class, 'store'])
             ->middleware('can:confirm-cart')
@@ -166,7 +166,7 @@ Route::middleware(['auth'])->group(function () {
                 'update' => 'admin.categories.update',
                 'destroy' => 'admin.categories.destroy',
             ]);
-        
+
 
         // Color management (full CRUD)
         Route::resource('admin/colors', ColorController::class)->except(['index', 'show'])

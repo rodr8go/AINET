@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>@if($type == 'pending') Order Confirmation - FunShirt @else Order Completed - FunShirt @endif</title>
+    <title>{{ $type == 'pending' ? 'Order Confirmation - FunShirt' : 'Order Completed - FunShirt' }}</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -20,9 +20,6 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .header {
-            background: linear-gradient(135deg, 
-                @if($type == 'pending') #4f46e5 0%, #6366f1 100% 
-                @else #22c55e 0%, #16a34a 100% @endif);
             color: white;
             text-align: center;
             padding: 30px 20px;
@@ -31,7 +28,6 @@
             font-size: 28px;
             font-weight: bold;
         }
-        @if($type == 'closed')
         .success-badge {
             background-color: #22c55e;
             color: white;
@@ -40,7 +36,6 @@
             font-size: 18px;
             font-weight: bold;
         }
-        @endif
         .content {
             padding: 30px;
         }
@@ -49,9 +44,6 @@
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid 
-                @if($type == 'pending') #4f46e5 
-                @else #22c55e @endif;
         }
         table {
             width: 100%;
@@ -65,10 +57,7 @@
         }
         .button {
             display: inline-block;
-            background: 
-                @if($type == 'pending') #4f46e5 
-                @else #22c55e @endif;
-            color: white;
+            color: white !important;
             padding: 12px 25px;
             text-decoration: none;
             border-radius: 5px;
@@ -92,15 +81,14 @@
 </head>
 <body>
     <div class="container">
-        {{-- Header with dynamic color --}}
-        <div class="header">
+        {{-- Header com cor dinâmica injetada via style inline --}}
+        <div class="header" style="background: {{ $type == 'pending' ? 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }};">
             <div class="logo">
-                @if($type == 'pending') 🎨 FunShirt @else ✅ FunShirt @endif
+                {{ $type == 'pending' ? '🎨 FunShirt' : '✅ FunShirt' }}
             </div>
             <p>Custom T-Shirts &amp; Printing</p>
         </div>
         
-        {{-- Success badge for closed orders --}}
         @if($type == 'closed')
         <div class="success-badge">
             🎉 ORDER COMPLETED! 🎉
@@ -108,8 +96,7 @@
         @endif
         
         <div class="content">
-            {{-- Dynamic greeting based on status --}}
-            <h2>Hello {{ $order->customer->user->name }}! 👋</h2>
+            <h2>Hello {{ $order->customer->user->name ?? 'Customer' }}! 👋</h2>
             
             @if($type == 'pending')
                 <p>Thank you for your order! We're excited to let you know that your order has been <strong>received</strong> and is now being processed.</p>
@@ -117,15 +104,11 @@
                 <p>Great news! Your order <strong>#{{ $order->id }}</strong> has been <strong>completed</strong> and is on its way to you! 🚚</p>
             @endif
             
-            {{-- Order details --}}
-            <div class="order-details">
+            {{-- Detalhes com borda dinâmica --}}
+            <div class="order-details" style="border-left: 4px solid {{ $type == 'pending' ? '#4f46e5' : '#22c55e' }};">
                 <h3 style="margin-top: 0;">📋 Order Summary</h3>
                 <p><strong>Order Number:</strong> #{{ $order->id }}</p>
-                <p><strong>Order Date:</strong> {{ $order->created_at->format('d/m/Y H:i') }}</p>
-                
-                @if($type == 'closed')
-                    <p><strong>Completion Date:</strong> {{ $order->updated_at->format('d/m/Y H:i') }}</p>
-                @endif
+                <p><strong>Order Date:</strong> {{ \Carbon\Carbon::parse($order->date)->format('d/m/Y') }}</p>
                 
                 <p><strong>Total Amount:</strong> €{{ number_format($order->total_price, 2) }}</p>
                 
@@ -158,27 +141,28 @@
                 @endif
             </div>
             
-            {{-- Dynamic message based on status --}}
             @if($type == 'pending')
                 <p>We'll notify you as soon as your order is ready to be shipped! 🚀</p>
             @else
                 <p>Your receipt is attached to this email. You can also download it from your account.</p>
             @endif
             
-            {{-- Receipt note for closed orders --}}
             @if($type == 'closed')
             <div class="receipt-note">
                 📄 <strong>Receipt attached:</strong> A PDF receipt has been attached to this email for your records.
             </div>
             @endif
             
-            {{-- Button --}}
-            <center>
-                <a href="{{ route('orders.show', $order) }}" class="button">View Order Details</a>
-            </center>
+            {{-- Botão com fundo dinâmico --}}
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td align="center" style="border: none;">
+                        <a href="{{ route('orders.show', $order) }}" class="button" style="background-color: {{ $type == 'pending' ? '#4f46e5' : '#22c55e' }};">View Order Details</a>
+                    </td>
+                </tr>
+            </table>
         </div>
         
-        {{-- Footer --}}
         <div class="footer">
             <p>FunShirt - Custom T-Shirts</p>
             <p>Questions? Contact us at <a href="mailto:support@funshirt.com">support@funshirt.com</a></p>
