@@ -141,7 +141,7 @@ Route::middleware(['auth'])->group(function () {
             'update' => 'admin.users.update',
             'destroy' => 'admin.users.destroy',
         ]);
-        Route::patch('users/{user}/toggle-block', [UserController::class, 'block'])->name('admin.users.toggle-block');
+        Route::patch('users/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('admin.users.toggle-block');
         // Cria um "alias" (atalho) para a rota antiga não partir o menu do utilizador
         Route::get('admin/users-compat', [UserController::class, 'index'])->name('users.index');
 

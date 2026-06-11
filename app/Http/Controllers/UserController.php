@@ -223,6 +223,16 @@ class UserController extends Controller implements HasMiddleware
      */
     public function toggleBlock(User $user): RedirectResponse
     {
+        if (!Gate::forUser(auth()->user())->allows('block', $user)) {
+            abort(403);
+        }
+
+        if (auth()->id() === $user->id && !$user->blocked) {
+            return redirect()->back()
+                ->with('alert-type', 'warning')
+                ->with('alert-msg', "You cannot block yourself.");
+        }
+
         if ($user->blocked) {
             return $this->unblock($user);
         } else {
