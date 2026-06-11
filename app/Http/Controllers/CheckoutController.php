@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\CartConfirmationFormRequest;
 
 class CheckoutController extends Controller
@@ -150,25 +151,22 @@ class CheckoutController extends Controller
         $priceSettings = DB::table('prices')->first();
 
         // Criar a encomenda dentro de uma transação da BD
-        $order = DB::transaction(function () use ($user, $cart, $request, $totalPrice, $priceSettings) {
-
+        $order = DB::transaction(function () use ($user, $cart, $request, $totalPrice) {
             $customer = $user->customer;
 
-            // Cria o registo principal da encomenda totalmente alinhado com o vosso Schema
             $order = Order::create([
-                'status'       => 'pending', // 🎯 CORRIGIDO: Nasce como 'pending' (aguarda logística/estampagem!)
-                'customer_id'  => $customer?->id, // Ligação obrigatória da vossa chave estrangeira
-                'date'         => now()->format('Y-m-d'), // Formato correto para o tipo date da BD
+                'status'       => 'pending',
+                'customer_id'  => $customer?->id,
+                'date'         => now()->format('Y-m-d'),
                 'total_price'  => $totalPrice,
                 'notes'        => $request->notes,
                 'nif'          => $request->nif ?? $customer?->nif,
-                'address'      => $customer?->address ?? 'Morada não especificada', // Garante que nunca vai null
+                'address'      => $customer?->address ?? 'Morada não especificada',
                 'payment_type' => $request->payment_type,
                 'payment_ref'  => $request->payment_ref,
                 'receipt_url'  => null,
             ]);
 
-            // Percorre o carrinho e cria os respetivos itens da encomenda (OrderItems)
             foreach ($cart as $id => $item) {
                 $order->items()->create([
                     'tshirt_image_id' => $item['tshirt_image_id'],
@@ -176,15 +174,27 @@ class CheckoutController extends Controller
                     'size'            => $item['size'],
                     'qty'             => $item['qty'],
                     'unit_price'      => $item['unit_price'],
-                    'sub_total'       => $item['unit_price'] * $item['qty'], // 🎯 Ajustado para 'sub_total' com underscore!
+                    'sub_total'       => $item['unit_price'] * $item['qty'],
                 ]);
+            }
+
+            // Gera o PDF na pasta 'pdf_receipts'
+            if (isset($this->receiptService)) {
+                $this->receiptService->generateReceipt($order);
             }
 
             return $order;
         });
 
+
+
+
         // Envia o e-mail de encomenda paga (tipo = 'paid', com o recibo digital)
-        $this->receiptService->sendOrderEmail($order, 'paid');
+        try {
+            $this->receiptService->sendOrderEmail($order, 'paid');
+        } catch (\Exception $e) {
+            Log::warning('Email de confirmação não enviado para order #' . $order->id . ': ' . $e->getMessage());
+        }
 
         // Limpa o carrinho da sessão após o sucesso total
         session()->forget('cart');

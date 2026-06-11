@@ -1,7 +1,6 @@
-<x-layouts::main-content title="Order #{{ $order->id }}" heading="Order Details" subheading="Order #{{ $order->id }} - {{ $order->created_at->format('d/m/Y') }}">
+<x-layouts::main-content title="Order #{{ $order->id }}" heading="Order Details" subheading="Order #{{ $order->id }} - {{ $order->date ? \Carbon\Carbon::parse($order->date)->format('d/m/Y') : $order->created_at->format('d/m/Y') }}">
     
     @php
-        // Debug - check if order has items
         $hasItems = $order->items && $order->items->count() > 0;
     @endphp
     
@@ -81,7 +80,7 @@
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                                         {{ $item->size }}
                                     </span>
-                                <td>
+                                </td>
                                 
                                 <td class="px-4 py-3 text-center">
                                     <span class="text-gray-900 dark:text-white">{{ $item->qty }}</span>
@@ -104,7 +103,7 @@
                         @endforelse
                     </tbody>
                     
-                    @if($order->items && $order->items->count() > 0)
+                    @if($hasItems)
                         <tfoot class="bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                             <tr>
                                 <td colspan="4" class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">
@@ -139,7 +138,9 @@
                 
                 <div class="flex justify-between">
                     <span class="text-gray-500 dark:text-gray-400">Order Date:</span>
-                    <span class="text-gray-900 dark:text-white">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                    <span class="text-gray-900 dark:text-white">
+                        {{ $order->date ? \Carbon\Carbon::parse($order->date)->format('d/m/Y') : $order->created_at->format('d/m/Y H:i') }}
+                    </span>
                 </div>
                 
                 <div class="flex justify-between">
@@ -191,8 +192,9 @@
                     ← Back to My Orders
                 </a>
                 
-                @if($order->isClosed() && $order->getAttribute('receipt_url'))
-                    <a href="{{ route('orders.receipt', $order) }}" class="...">
+                @if($order->status === 'closed' || $order->status === 'paid')
+                    <a href="{{ route('orders.receipt', $order) }}" 
+                       class="block w-full text-center bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition text-sm font-medium shadow-sm">
                         Download Receipt (PDF)
                     </a>
                 @endif

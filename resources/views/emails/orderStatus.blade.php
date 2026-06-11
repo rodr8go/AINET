@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ $type == 'pending' ? 'Order Confirmation - FunShirt' : 'Order Completed - FunShirt' }}</title>
+    <title>{{ in_array($type, ['pending', 'paid']) ? 'Order Confirmation - FunShirt' : 'Order Completed - FunShirt' }}</title>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -84,7 +84,7 @@
         {{-- Header com cor dinâmica injetada via style inline --}}
         <div class="header" style="background: {{ $type == 'pending' ? 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)' : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' }};">
             <div class="logo">
-                {{ $type == 'pending' ? '🎨 FunShirt' : '✅ FunShirt' }}
+                {{ in_array($type, ['pending', 'paid']) ? '🎨 FunShirt' : '✅ FunShirt' }}
             </div>
             <p>Custom T-Shirts &amp; Printing</p>
         </div>
@@ -98,14 +98,14 @@
         <div class="content">
             <h2>Hello {{ $order->customer->user->name ?? 'Customer' }}! 👋</h2>
             
-            @if($type == 'pending')
+            @if(in_array($type, ['pending', 'paid']))
                 <p>Thank you for your order! We're excited to let you know that your order has been <strong>received</strong> and is now being processed.</p>
             @else
                 <p>Great news! Your order <strong>#{{ $order->id }}</strong> has been <strong>completed</strong> and is on its way to you! 🚚</p>
             @endif
             
             {{-- Detalhes com borda dinâmica --}}
-            <div class="order-details" style="border-left: 4px solid {{ $type == 'pending' ? '#4f46e5' : '#22c55e' }};">
+            <div class="order-details" style="border-left: 4px solid {{ in_array($type, ['pending', 'paid']) ? '#4f46e5' : '#22c55e' }};">
                 <h3 style="margin-top: 0;">📋 Order Summary</h3>
                 <p><strong>Order Number:</strong> #{{ $order->id }}</p>
                 <p><strong>Order Date:</strong> {{ \Carbon\Carbon::parse($order->date)->format('d/m/Y') }}</p>
@@ -141,7 +141,7 @@
                 @endif
             </div>
             
-            @if($type == 'pending')
+            @if(in_array($type, ['pending', 'paid']))
                 <p>We'll notify you as soon as your order is ready to be shipped! 🚀</p>
             @else
                 <p>Your receipt is attached to this email. You can also download it from your account.</p>
@@ -157,7 +157,7 @@
             <table style="width: 100%; border: none;">
                 <tr>
                     <td align="center" style="border: none;">
-                        <a href="{{ route('orders.show', $order) }}" class="button" style="background-color: {{ $type == 'pending' ? '#4f46e5' : '#22c55e' }};">View Order Details</a>
+                        <a href="{{ route('orders.show', $order) }}" class="button" style="background-color: {{ in_array($type, ['pending', 'paid']) ? '#4f46e5' : '#22c55e' }};">View Order Details</a>
                     </td>
                 </tr>
             </table>

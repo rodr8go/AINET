@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 
 class OrderController extends Controller
@@ -58,22 +59,43 @@ class OrderController extends Controller
 
     public function downloadReceipt(Order $order)
     {
+        // 1. Autorização
         Gate::authorize('downloadReceipt', $order);
 
-        if (!$order->isClosed() || !$order->receipt_url) {
-            abort(404);
+        if ($order->status !== 'closed' && $order->status !== 'paid') {
+            abort(403, 'Apenas encomendas pagas ou concluídas têm recibo.');
         }
 
-        // Look in PRIVATE disk (not public)
-        $path = storage_path('app/private/pdf_receipts/' . $order->receipt_url);
+        // 2. 🎯 ESTRATÉGIA DE CAMINHOS SEPARADOS
+        if ($order->id <= 4800) {
+            // Encomendas Antigas (Pasta Private)
 
-        // Also check public as fallback
-        if (!file_exists($path)) {
+            // Tentativa 1: Tenta o nome padrão correto que vimos na tua pasta: receipt_X.pdf
+            $path = storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf');
+            // Tentativa 2: Se o anterior não existir, tenta o que está guardado na BD
+            if (!file_exists($path) && !empty($order->receipt_url)) {
+                $path = storage_path('app/private/pdf_receipts/' . $order->receipt_url);
+            }
+            // Se nenhuma das duas opções existir fisicamente, aí sim dá 404
+            if (!file_exists($path)) {
+                abort(404, "O recibo físico da encomenda #{$order->id} não existe em storage/app/pdf_receipts/");
+            }
+        } else {
+            // Encomendas Novas (Pasta Public)
             $path = storage_path('app/public/pdf_receipts/' . $order->receipt_url);
-        }
 
-        if (!file_exists($path)) {
-            abort(404, 'Receipt file not found.');
+            // Se não existir nas novas, o teu ReceiptService gera-o na pasta pública
+            if (empty($order->receipt_url) || !file_exists($path)) {
+                if (isset($this->receiptService)) {
+                    $this->receiptService->generateReceipt($order);
+                    $order->refresh(); // Atualiza os dados
+                    $path = storage_path('app/public/pdf_receipts/' . $order->receipt_url);
+                }
+            }
+
+            if (!file_exists($path)) {
+                abort(404, 'Não foi possível gerar o recibo para esta nova encomenda.');
+            }
         }
 
         return response()->download($path, 'receipt_' . $order->id . '.pdf');
@@ -109,12 +131,17 @@ class OrderController extends Controller
         $order->save();
 
         // Dispara automaticamente o e-mail verde de sucesso com o recibo em PDF anexado!
-        $this->receiptService->sendOrderEmail($order, 'closed');
+        try {
+            $this->receiptService->sendOrderEmail($order, 'closed');
+        } catch (\Exception $e) {
+            Log::warning('Email de fecho não enviado para order #' . $order->id . ': ' . $e->getMessage());
+        }
 
         // Redireciona de volta para a lista com uma mensagem de sucesso
         return redirect()->route('employee.orders.pending')
             ->with('toast', 'Encomenda #' . $order->id . ' concluída e enviada com sucesso!');
     }
+
     
     // ==================== ADMIN METHODS ====================
 
