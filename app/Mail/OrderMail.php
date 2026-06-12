@@ -27,10 +27,11 @@ class OrderMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $subject = $this->type === 'pending' 
-            ? 'Order Confirmation - FunShirt'
-            : 'Order Completed - FunShirt';
-
+        $subject = match ($this->type) {
+            'pending', 'paid' => 'Encomenda Confirmada - FunShirt',
+            'closed'          => 'Encomenda Enviada - FunShirt',
+            default           => 'Atualização da Encomenda - FunShirt',
+        };
         return new Envelope(subject: $subject);
     }
 

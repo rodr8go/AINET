@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
+use Illuminate\Validation\ValidationException;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,24 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Fortify::authenticateUsing(function ($request) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+            
+            //Ver se o user está bloqueado
+            if ($user && $user->blocked == 1) {
+                throw ValidationException::withMessages([
+                    'email' => ['Your account has been blocked. Please contact an administrator.'],
+                ]);
+            }
+            
+            //Verificar crdenciais
+            if ($user && \Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                return $user;
+            }
+            
+            return null;
+        });
+
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();

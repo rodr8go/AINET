@@ -10,6 +10,7 @@ use App\Http\Requests\UserFormRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -29,26 +30,36 @@ class UserController extends Controller implements HasMiddleware
     /**
      * Display a listing of users (employees and admins only)
      */
-    public function index(Request $request): View
+    public function index(Request $request): \Illuminate\View\View
     {
-        $usersQuery = User::whereIn('user_type', ['F', 'A'])
-            ->orderBy('user_type')
-            ->orderBy('name');
-        
-        $filterByName = $request->query('name');
-        $filterByType = $request->query('user_type');
-        
-        if ($filterByName) {
-            $usersQuery->where('name', 'like', "%$filterByName%");
+        // 1. IMPORTANTE: Começa com a query limpa (Sem filtros fixos por Employee!)
+        $query = User::query();
+
+        // 2. Filtro por Nome (se preenchido)
+        if ($request->filled('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
         }
-        
-        if ($filterByType && in_array($filterByType, ['F', 'A'])) {
-            $usersQuery->where('user_type', $filterByType);
+
+        // 3. Filtro por Role/Type (repara que no URL está 'type')
+        if ($request->filled('type')) {
+            // Mapeia o valor do select ('Administrator', etc.) para a letra da BD ('A', 'F', 'C')
+            $typeValue = match ($request->type) {
+                'Administrator' => 'A',
+                'Employee'      => 'F',
+                'Customer'      => 'C',
+                default         => $request->type,
+            };
+
+            $query->where('user_type', $typeValue);
+        } else {
+            // Se não houver filtro de tipo selecionado, garante que traz Admins e Employees (ignora apenas os clientes se for essa a vossa regra)
+            $query->whereIn('user_type', ['A', 'F']);
         }
-        
-        $users = $usersQuery->paginate(20)->withQueryString();
-        
-        return view('admin.users.index', compact('users', 'filterByName', 'filterByType'));
+
+        // 4. Executa a paginação acumulando os filtros no URL
+        $users = $query->orderBy('name', 'asc')->paginate(20)->withQueryString();
+
+        return view('admin.users.index', compact('users')); // ajusta para o nome exato da tua vista se for diferente
     }
 
     /**
@@ -57,47 +68,37 @@ class UserController extends Controller implements HasMiddleware
     public function create(): View
     {
         $newUser = new User();
-        return view('users.create')->with('user', $newUser);
+        return view('admin.users.create')->with('user', $newUser);
     }
 
     /**
      * Store a newly created user
      */
-    public function store(UserFormRequest $request): RedirectResponse
-    {
-        $validatedData = $request->validated();
-        
-        $newUser = new User();
-        $newUser->user_type = $validatedData['user_type'];
-        $newUser->name = $validatedData['name'];
-        $newUser->email = $validatedData['email'];
-        
-        // Only sets admin field if it has permission to do it
-        $newUser->admin = Gate::check('createAdmin', User::class)
-            ? ($validatedData['admin'] ?? false)
-            : false;
-        
-        $newUser->gender = $validatedData['gender'];
-        $newUser->blocked = false;
-        $newUser->password = bcrypt('123'); // Default password
-        
-        $newUser->save();
-        
-        // Store photo if uploaded
-        if ($request->hasFile('photo_file')) {
-            $this->storeUserPhoto($request->photo_file, $newUser);
+        public function store(UserFormRequest $request): RedirectResponse
+        {
+            $validatedData = $request->validated();
+
+            $newUser = new User();
+            $newUser->user_type = $validatedData['user_type'];
+            $newUser->name = $validatedData['name'];
+            $newUser->email = $validatedData['email'];
+            $newUser->gender = $validatedData['gender'];
+            $newUser->blocked = false;
+            $newUser->password = bcrypt('123');
+
+            $newUser->save();
+
+            if ($request->hasFile('photo_file')) {
+                $this->storeUserPhoto($request->photo_file, $newUser);
+            }
+
+            $newUser->sendEmailVerificationNotification();
+
+            // CORRIGIDO: redirecionar para admin.users.index
+            return redirect()->route('admin.users.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "Utilizador {$newUser->name} criado com sucesso!");
         }
-        
-        // Send email verification notification
-        $newUser->sendEmailVerificationNotification();
-        
-        $url = route('users.show', ['user' => $newUser]);
-        $htmlMessage = "User <a href='$url'><u>{$newUser->name}</u></a> has been created successfully!";
-        
-        return redirect()->route('users.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
-    }
 
     /**
      * Display the specified user
@@ -112,7 +113,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function edit(User $user): View
     {
-        return view('users.edit')->with('user', $user);
+        return view('admin.users.edit')->with('user', $user);
     }
 
     /**
@@ -120,31 +121,38 @@ class UserController extends Controller implements HasMiddleware
      */
     public function update(UserFormRequest $request, User $user): RedirectResponse
     {
-        $validatedData = $request->validated();
-        
-        $user->name = $validatedData['name'];
-        $user->email = $validatedData['email'];
-        
-        // Only changes admin field if it has permission to do it
-        if (Gate::check('updateAdmin', $user)) {
-            $user->admin = $validatedData['admin'] ?? false;
+        try {
+            $validatedData = $request->validated();
+
+            $user->name = $validatedData['name'];
+            $user->email = $validatedData['email'];
+            $user->gender = $validatedData['gender'];
+            
+            if ($request->filled('password')) {
+                $user->password = bcrypt($request->password);
+            }
+            
+            $user->save();
+
+            if ($request->hasFile('photo_file')) {
+                if ($user->photo_url && Storage::disk('public')->exists('photos/' . $user->photo_url)) {
+                    Storage::disk('public')->delete('photos/' . $user->photo_url);
+                }
+                $path = $request->file('photo_file')->store('photos', 'public');
+                $user->photo_url = basename($path);
+                $user->save();
+            }
+
+            return redirect()->route('admin.users.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "Utilizador {$user->name} atualizado com sucesso!");
+                
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Erro: ' . $e->getMessage())
+                ->withInput();
         }
-        
-        $user->gender = $validatedData['gender'];
-        $user->save();
-        
-        // Handle photo update
-        if ($request->hasFile('photo_file')) {
-            $this->deleteUserPhoto($user);
-            $this->storeUserPhoto($request->photo_file, $user);
-        }
-        
-        $url = route('users.show', ['user' => $user]);
-        $htmlMessage = "User <a href='$url'><u>{$user->name}</u></a> has been updated successfully!";
-        
-        return redirect()->route('users.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
     }
 
     /**
@@ -157,17 +165,17 @@ class UserController extends Controller implements HasMiddleware
             $fileName = $user->photo_url;
             $user->delete(); // Soft delete
             $this->deletePhotoFile($fileName);
-            
+
             $alertType = 'success';
             $alertMsg = "User {$user->name} has been deleted successfully!";
-            
+
             return redirect()->route('users.index')
                 ->with('alert-type', $alertType)
                 ->with('alert-msg', $alertMsg);
         } catch (\Exception $error) {
             $alertType = 'danger';
             $alertMsg = "It was not possible to delete the user {$user->name}!";
-            
+
             return redirect()->back()
                 ->with('alert-type', $alertType)
                 ->with('alert-msg', $alertMsg);
@@ -182,15 +190,15 @@ class UserController extends Controller implements HasMiddleware
         if (!Gate::allows('block', $user)) {
             abort(403);
         }
-        
+
         $user->blocked = true;
         $user->save();
-        
+
         return redirect()->back()
             ->with('alert-type', 'success')
             ->with('alert-msg', "User {$user->name} has been blocked.");
     }
-    
+
     /**
      * Unblock a user
      */
@@ -199,10 +207,10 @@ class UserController extends Controller implements HasMiddleware
         if (!Gate::allows('block', $user)) {
             abort(403);
         }
-        
+
         $user->blocked = false;
         $user->save();
-        
+
         return redirect()->back()
             ->with('alert-type', 'success')
             ->with('alert-msg', "User {$user->name} has been unblocked.");
@@ -213,6 +221,16 @@ class UserController extends Controller implements HasMiddleware
      */
     public function toggleBlock(User $user): RedirectResponse
     {
+        if (!Gate::forUser(auth()->user())->allows('block', $user)) {
+            abort(403);
+        }
+
+        if (auth()->id() === $user->id && !$user->blocked) {
+            return redirect()->back()
+                ->with('alert-type', 'warning')
+                ->with('alert-msg', "You cannot block yourself.");
+        }
+
         if ($user->blocked) {
             return $this->unblock($user);
         } else {
@@ -230,7 +248,7 @@ class UserController extends Controller implements HasMiddleware
                 ->with('alert-type', 'success')
                 ->with('alert-msg', "Photo of user {$user->name} has been deleted.");
         }
-        
+
         return redirect()->back()
             ->with('alert-type', 'warning')
             ->with('alert-msg', "Photo of user {$user->name} does not exist.");
