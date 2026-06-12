@@ -9,7 +9,9 @@
     <flux:sidebar sticky collapsible="mobile"
         class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.header>
-            <x-app-logo :sidebar="true" href="{{ route('home') }}" wire:navigate />
+            <a href="{{ route('home') }}" wire:navigate class="flex items-center gap-2 px-1 py-2">
+    <span class="text-2xl font-black tracking-tight text-white">Fun<span class="text-indigo-400">Shirt</span></span>
+</a>
             <flux:sidebar.collapse class="lg:hidden" />
         </flux:sidebar.header>
 
