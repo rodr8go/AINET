@@ -14,10 +14,10 @@ class CartController extends Controller
     public function show()
     {
         $cart = session()->get('cart', []);
-        
+
         // Vamos passar também as regras de preço para o Blade do carrinho conseguir ler o qty_discount se precisar
         $priceRules = DB::table('prices')->first();
-        
+
         return view('cart.show', compact('cart', 'priceRules'));
     }
 
@@ -53,11 +53,12 @@ class CartController extends Controller
                 'tshirt_image_id' => $tshirtImage->id,
                 'name' => $tshirtImage->name,
                 'image_url' => $tshirtImage->image_url,
+                'customer_id' => $tshirtImage->customer_id,
                 'color_code' => $color->code,
                 'color_name' => $color->name,
                 'size' => $request->size,
                 'qty' => $request->qty,
-                'unit_price' => $basePrice, // Será atualizado logo abaixo
+                'unit_price' => $basePrice,
             ];
         }
 

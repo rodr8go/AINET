@@ -48,10 +48,18 @@
                                     <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50">
                                         <td class="p-4 font-medium text-zinc-900 dark:text-white flex items-center gap-3">
                                             @if(isset($item['image_url']))
-                                                <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" class="w-12 h-12 rounded object-cover border bg-zinc-100">
-                                            @else
-                                                <div class="w-12 h-12 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-400">No Img</div>
-                                            @endif
+    @if(!empty($item['customer_id']))
+        {{-- Imagem privada do cliente --}}
+        <img src="{{ route('my-images.show-image', $item['tshirt_image_id']) }}" 
+             class="w-12 h-12 rounded object-cover border bg-zinc-100">
+    @else
+        {{-- Imagem pública do catálogo --}}
+        <img src="{{ asset('storage/tshirt_images/' . $item['image_url']) }}" 
+             class="w-12 h-12 rounded object-cover border bg-zinc-100">
+    @endif
+@else
+    <div class="w-12 h-12 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs text-zinc-400">No Img</div>
+@endif
                                             <span>{{ $item['name'] ?? 'T-shirt' }}</span>
                                         </td>
                                         
@@ -67,13 +75,8 @@
                                         </td>
                                         
                                         <td class="p-4 text-center">
-                                            <form action="{{ route('cart.update', $id) }}" method="POST" class="flex items-center justify-center gap-1">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="number" name="quantity" value="{{ $item['qty'] ?? 1 }}" min="1" class="w-12 text-center border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 rounded p-1 text-sm">
-                                                <flux:button type="submit" size="sm" variant="subtle" icon="check" title="Atualizar" />
-                                            </form>
-                                        </td>
+    <span class="font-medium text-zinc-900 dark:text-white">{{ $item['qty'] ?? 1 }}</span>
+</td>
                                         
                                         <td class="p-4 font-semibold text-zinc-900 dark:text-white">
                                             {{ number_format($itemSubtotal, 2, ',', '.') }} €

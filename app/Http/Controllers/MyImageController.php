@@ -21,7 +21,7 @@ class MyImageController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('pages.my-images.index', compact('images'));
+        return view('my-images.index', compact('images'));
     }
 
     /**
@@ -29,7 +29,7 @@ class MyImageController extends Controller
      */
     public function create()
     {
-        return view('pages.my-images.create');
+        return view('my-images.create');
     }
 
     /**
@@ -77,8 +77,8 @@ class MyImageController extends Controller
             ]);
         }
 
-        return redirect()->route('my-images.index')->with('success', 'Imagem guardada com sucesso!');
-    }
+        return redirect()->route('my-images.index')->with('success', 'Imagem guardada com sucesso!');    
+}
 
     /**
      * Apaga a imagem da pasta PRIVADA
