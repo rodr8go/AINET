@@ -78,7 +78,7 @@
                         Encomendas Pendentes
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="queue-list" :href="route('admin.orders.index')"
-                        :current="request()->routeIs('admin.orders.*')" wire:navigate>
+                        :current="request()->routeIs('admin.orders.index')" wire:navigate>
                         Todas as Encomendas
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="chart-bar" :href="route('statistics.index')"
