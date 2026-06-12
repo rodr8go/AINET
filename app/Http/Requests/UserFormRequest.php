@@ -53,15 +53,16 @@ class UserFormRequest extends FormRequest
             ],
             'gender' => 'required|in:M,F',
             'user_type' => 'required|in:F,A',  // Employee or Admin
-            'photo_file' => 'sometimes|image|max:4096', // 4Mb max
+            'photo_file' => 'nullable|image|max:4096', // 4Mb max
         ];
-        
-        // Only admins can set the admin flag
-        if (Gate::check('createAdmin', User::class)) {
-            $rules['admin'] = 'boolean';
+
+        // Para edição (PUT/PATCH), password é opcional
+        if (strtolower($this->getMethod()) != 'post') {
+            $rules['password'] = 'nullable|min:8|confirmed';
         }
-        
+
         return $rules;
+        
     }
     
     /**

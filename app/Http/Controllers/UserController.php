@@ -10,6 +10,7 @@ use App\Http\Requests\UserFormRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller implements HasMiddleware
 {
@@ -67,47 +68,37 @@ class UserController extends Controller implements HasMiddleware
     public function create(): View
     {
         $newUser = new User();
-        return view('users.create')->with('user', $newUser);
+        return view('admin.users.create')->with('user', $newUser);
     }
 
     /**
      * Store a newly created user
      */
-    public function store(UserFormRequest $request): RedirectResponse
-    {
-        $validatedData = $request->validated();
+        public function store(UserFormRequest $request): RedirectResponse
+        {
+            $validatedData = $request->validated();
 
-        $newUser = new User();
-        $newUser->user_type = $validatedData['user_type'];
-        $newUser->name = $validatedData['name'];
-        $newUser->email = $validatedData['email'];
+            $newUser = new User();
+            $newUser->user_type = $validatedData['user_type'];
+            $newUser->name = $validatedData['name'];
+            $newUser->email = $validatedData['email'];
+            $newUser->gender = $validatedData['gender'];
+            $newUser->blocked = false;
+            $newUser->password = bcrypt('123');
 
-        // Only sets admin field if it has permission to do it
-        $newUser->admin = Gate::check('createAdmin', User::class)
-            ? ($validatedData['admin'] ?? false)
-            : false;
+            $newUser->save();
 
-        $newUser->gender = $validatedData['gender'];
-        $newUser->blocked = false;
-        $newUser->password = bcrypt('123'); // Default password
+            if ($request->hasFile('photo_file')) {
+                $this->storeUserPhoto($request->photo_file, $newUser);
+            }
 
-        $newUser->save();
+            $newUser->sendEmailVerificationNotification();
 
-        // Store photo if uploaded
-        if ($request->hasFile('photo_file')) {
-            $this->storeUserPhoto($request->photo_file, $newUser);
+            // CORRIGIDO: redirecionar para admin.users.index
+            return redirect()->route('admin.users.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "Utilizador {$newUser->name} criado com sucesso!");
         }
-
-        // Send email verification notification
-        $newUser->sendEmailVerificationNotification();
-
-        $url = route('users.show', ['user' => $newUser]);
-        $htmlMessage = "User <a href='$url'><u>{$newUser->name}</u></a> has been created successfully!";
-
-        return redirect()->route('users.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
-    }
 
     /**
      * Display the specified user
@@ -122,7 +113,7 @@ class UserController extends Controller implements HasMiddleware
      */
     public function edit(User $user): View
     {
-        return view('users.edit')->with('user', $user);
+        return view('admin.users.edit')->with('user', $user);
     }
 
     /**
@@ -130,31 +121,38 @@ class UserController extends Controller implements HasMiddleware
      */
     public function update(UserFormRequest $request, User $user): RedirectResponse
     {
-        $validatedData = $request->validated();
+        try {
+            $validatedData = $request->validated();
 
-        $user->name = $validatedData['name'];
-        $user->email = $validatedData['email'];
+            $user->name = $validatedData['name'];
+            $user->email = $validatedData['email'];
+            $user->gender = $validatedData['gender'];
+            
+            if ($request->filled('password')) {
+                $user->password = bcrypt($request->password);
+            }
+            
+            $user->save();
 
-        // Only changes admin field if it has permission to do it
-        if (Gate::check('updateAdmin', $user)) {
-            $user->admin = $validatedData['admin'] ?? false;
+            if ($request->hasFile('photo_file')) {
+                if ($user->photo_url && Storage::disk('public')->exists('photos/' . $user->photo_url)) {
+                    Storage::disk('public')->delete('photos/' . $user->photo_url);
+                }
+                $path = $request->file('photo_file')->store('photos', 'public');
+                $user->photo_url = basename($path);
+                $user->save();
+            }
+
+            return redirect()->route('admin.users.index')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "Utilizador {$user->name} atualizado com sucesso!");
+                
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Erro: ' . $e->getMessage())
+                ->withInput();
         }
-
-        $user->gender = $validatedData['gender'];
-        $user->save();
-
-        // Handle photo update
-        if ($request->hasFile('photo_file')) {
-            $this->deleteUserPhoto($user);
-            $this->storeUserPhoto($request->photo_file, $user);
-        }
-
-        $url = route('users.show', ['user' => $user]);
-        $htmlMessage = "User <a href='$url'><u>{$user->name}</u></a> has been updated successfully!";
-
-        return redirect()->route('users.index')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
     }
 
     /**

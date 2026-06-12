@@ -53,7 +53,7 @@ class CustomerFormRequest extends FormRequest
             'gender' => 'required|in:M,F',
             'nif' => 'nullable|digits:9',
             'address' => 'nullable|string|max:500',
-            'default_payment_type' => 'nullable|in:Visa,PayPal,MB',
+            'default_payment_type' => 'nullable|in:Visa,PayPal,MB WAY',
             'default_payment_ref' => 'nullable|string|max:255',
             'photo_file' => 'sometimes|image|max:4096',
         ];

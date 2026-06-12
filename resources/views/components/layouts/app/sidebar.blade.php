@@ -10,11 +10,11 @@
                 <flux:sidebar.collapse class="lg:hidden" />
             </flux:sidebar.header>
 
-            {{-- Public Menu Items --}}
+            //Area Publica
             <flux:navlist.item icon="home" href="{{ route('home') }}">Início</flux:navlist.item>
             <flux:navlist.item icon="layout-grid" href="{{ route('catalog.index') }}">Catálogo</flux:navlist.item>
 
-            {{-- Shopping Cart with Badge --}}
+            //Carrinho
             @can('use-cart')
                 @if(count(session('cart', [])) > 0)
                     <flux:navlist.item 
@@ -22,8 +22,7 @@
                         icon:variant="solid" 
                         :href="route('cart.show')" 
                         :current="request()->routeIs('cart.show')" 
-                        wire:navigate
-                    >
+                        wire:navigate>
                         <div class="flex items-center justify-between w-full">
                             <span>Shopping Cart</span>
                             <span class="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-sm">
@@ -34,12 +33,26 @@
                 @endif
             @endcan
 
-            {{-- ===== CUSTOMER MENU SECTION ===== --}}
+            //Perfil
             @auth
-                @can('use-cart')
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="My Account" class="grid">
+                        <flux:sidebar.item 
+                            icon="user-circle" 
+                            :href="route('profile.edit')" 
+                            :current="request()->routeIs('profile.edit')" 
+                            wire:navigate>
+                            My Profile
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                </flux:sidebar.nav>
+            @endauth
+
+            //Area Cliente
+            @auth
+                @if(auth()->user()->isCustomer())
                     <flux:sidebar.nav>
                         <flux:sidebar.group heading="My Account" class="grid">
-                            {{-- My Custom Images --}}
                             <flux:sidebar.item 
                                 icon="photo" 
                                 :href="route('my-images.index')" 
@@ -48,7 +61,6 @@
                                 My Custom Images
                             </flux:sidebar.item>
                             
-                            {{-- My Orders --}}
                             <flux:sidebar.item 
                                 icon="shopping-bag" 
                                 :href="route('orders.my')" 
@@ -58,10 +70,25 @@
                             </flux:sidebar.item>
                         </flux:sidebar.group>
                     </flux:sidebar.nav>
-                @endcan
+                @endif
             @endauth
 
-            {{-- Admin Dashboard Link --}}
+            //Area Funcionario
+            @can('employee')
+                <flux:sidebar.nav>
+                    <flux:sidebar.group heading="Employee Area" class="grid">
+                        <flux:sidebar.item 
+                            icon="truck" 
+                            :href="route('employee.orders.pending')" 
+                            :current="request()->routeIs('employee.orders.pending')" 
+                            wire:navigate>
+                            Pending Orders
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                </flux:sidebar.nav>
+            @endcan
+
+            //Area Admin
             @can('admin')
                 <flux:sidebar.nav>
                     <flux:sidebar.group heading="Platform" class="grid">
@@ -72,14 +99,13 @@
                 </flux:sidebar.nav>
             @endcan
 
-            {{-- Admin Management Section --}}
             @can('admin')
                 <flux:sidebar.nav>
                     <flux:sidebar.group heading="Management" class="grid">
-                        <flux:sidebar.item icon="users" :href="route('users.index')" wire:navigate>
+                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" wire:navigate>
                             Manage Users
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="shopping-bag" :href="route('customers.index')" wire:navigate>
+                        <flux:sidebar.item icon="shopping-bag" :href="route('admin.customers.index')" wire:navigate>
                             Manage Customers
                         </flux:sidebar.item>
                         <flux:sidebar.item icon="photo" :href="route('catalog-images.index')" wire:navigate>
@@ -106,8 +132,18 @@
 
             <flux:spacer />
 
+            //Logout
             @auth
-                <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:sidebar.item 
+                        as="button"
+                        type="submit"
+                        icon="arrow-right-start-on-rectangle"
+                        class="w-full cursor-pointer text-red-600 hover:text-red-700">
+                        Logout
+                    </flux:sidebar.item>
+                </form>
             @else
                 <flux:sidebar.item icon="user" :href="route('login')" :current="request()->routeIs('login')" wire:navigate>
                     Login
@@ -115,7 +151,7 @@
             @endauth
         </flux:sidebar>
 
-        {{-- Mobile User Menu --}}
+        {{-- Mobile Menu --}}
         @auth
         <flux:header class="lg:hidden">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
@@ -145,8 +181,17 @@
 
                     <flux:menu.separator />
 
-                    {{-- Mobile Customer Menu Items --}}
-                    @can('use-cart')
+                    //Perfil
+                    <flux:menu.radio.group>
+                        <flux:menu.item :href="route('profile.edit')" icon="user-circle" wire:navigate>
+                            My Profile
+                        </flux:menu.item>
+                    </flux:menu.radio.group>
+
+                    <flux:menu.separator />
+
+                    //Area Cliente
+                    @if(auth()->user()->isCustomer())
                         <flux:menu.radio.group>
                             <flux:menu.item :href="route('my-images.index')" icon="photo" wire:navigate>
                                 My Custom Images
@@ -156,9 +201,9 @@
                             </flux:menu.item>
                         </flux:menu.radio.group>
                         <flux:menu.separator />
-                    @endcan
+                    @endif
 
-                    {{-- Employee Mobile Items --}}
+                    //Area Funcionario
                     @can('employee')
                         <flux:menu.radio.group>
                             <flux:menu.item :href="route('employee.orders.pending')" icon="truck" wire:navigate>
@@ -168,6 +213,32 @@
                         <flux:menu.separator />
                     @endcan
 
+                    //Area Admin
+                    @can('admin')
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('dashboard')" icon="home" wire:navigate>
+                                Dashboard
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('admin.users.index')" icon="users" wire:navigate>
+                                Manage Users
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('admin.customers.index')" icon="shopping-bag" wire:navigate>
+                                Manage Customers
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('catalog-images.index')" icon="photo" wire:navigate>
+                                Catalog Images
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('admin.orders.index')" icon="truck" wire:navigate>
+                                All Orders
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('statistics.index')" icon="chart-bar" wire:navigate>
+                                Statistics
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+                        <flux:menu.separator />
+                    @endcan
+
+                    //Settings
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
                             Settings
@@ -176,16 +247,17 @@
 
                     <flux:menu.separator />
 
+                    //Logout
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <flux:menu.item
                             as="button"
                             type="submit"
                             icon="arrow-right-start-on-rectangle"
-                            class="w-full cursor-pointer"
+                            class="w-full cursor-pointer text-red-600"
                             data-test="logout-button"
                         >
-                            Log out
+                            Logout
                         </flux:menu.item>
                     </form>
                 </flux:menu>

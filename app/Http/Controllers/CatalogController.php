@@ -15,7 +15,6 @@ class CatalogController extends Controller
     public function index(Request $request)
     {
 
-    
         // 1. Ir buscar apenas as imagens PÚBLICAS do catálogo (customer_id nulo)
         $query = TshirtImage::whereNull('customer_id');
 
