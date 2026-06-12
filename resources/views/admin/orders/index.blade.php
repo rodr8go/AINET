@@ -18,10 +18,9 @@
                     <flux:label class="mb-2 block text-sm">Estado</flux:label>
                     <select name="status" class="w-full border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-800 dark:text-zinc-200">
                         <option value="">-- Todos os Estados --</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente (Pending)</option>
-                        <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Pago (Paid)</option>
-                        <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>Enviado (Sent)</option>
-                        <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelado (Canceled)</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente (Pending)</option>
+                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Fechada (Closed)</option>
+                            <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelada (Canceled)</option>
                     </select>
                 </div>
 
@@ -85,11 +84,10 @@
                                 <td class="p-4 text-center">
                                     @php
                                         $statusColors = [
-                                            'pending' => 'amber',
-                                            'paid'    => 'green',
-                                            'canceled'=> 'red',
-                                            'sent'    => 'blue'
-                                        ];
+                                        'pending' => 'amber',
+                                        'closed'  => 'green',
+                                        'canceled'=> 'red',
+                                    ];
                                         $color = $statusColors[$order->status] ?? 'zinc';
                                     @endphp
                                     <flux:badge size="sm" color="{{ $color }}" variant="subtle">

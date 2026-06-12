@@ -68,63 +68,43 @@ class AppServiceProvider extends ServiceProvider
 
     protected function registerGates(): void
     {
+        //Quem tem acesso a dashboard
+        Gate::define('view-dashboard', function (User $user) {
+            return $user->isAdmin() || $user->isEmployee();
+        });
         
+        //Quem tem acesso a profile
         Gate::define('view-profile', function (?User $user) {
             if (!$user) return false;
             return $user->isCustomer() || $user->isAdmin();
         });
 
-        // Cart gates (from your example)
+        //Quem pode usar o carrinho (Visitantes, Clientes normais ou Administradores)
         Gate::define('use-cart', function (?User $user) {
-            // Anonymous users AND customers can use cart
-            // Employees cannot use cart
-            return $user === null || $user->user_type === 'C' || $user->isAdmin();
+            return $user === null || !$user->isEmployee();
         });
         
+        //Quem pode finalizar compras
         Gate::define('confirm-cart', function (User $user) {
-            // Only customers and admins can confirm cart
-            return $user->user_type === 'C' || $user->isAdmin();
+            return !$user->isEmployee(); // Qualquer um menos funcionários
         });
+
+        //Utilizadores
         
-        // Admin gate - super administrator
+        //Quem é considerado ADMIN no sistema pelas rotas
         Gate::define('admin', function (User $user) {
-            // User must have admin = true AND be type 'A' (Administrator)
-            return $user->isAdmin();
+            return $user->isAdmin(); // Usa o método helper que está no User.php ('A')
         });
         
-        // Dashboard access gate
-        Gate::define('view-dashboard', function (User $user) {
-            return $user->isAdmin() || $user->isEmployee();
-        });
-        
-        // Employee gate
+        //Quem é considerado FUNCIONÁRIO pelas rotas
         Gate::define('employee', function (User $user) {
-            return $user->isEmployee() || $user->isAdmin();
+            return $user->isEmployee();
         });
     }
 
     protected function shareGlobalData(): void
     {
-        // 🛒 Quem pode usar o carrinho (Visitantes, Clientes normais ou Administradores)
-        Gate::define('use-cart', function (?User $user) {
-            return $user === null || !$user->isEmployee();
-        });
-
-        // ✅ Quem pode finalizar compras
-        Gate::define('confirm-cart', function (User $user) {
-            return $user->user_type !== 'F'; // Qualquer um menos funcionários
-        });
-
-        // 👑 Quem é considerado ADMIN no sistema pelas rotas
-        Gate::define('admin', function (User $user) {
-            return $user->isAdmin(); // Usa o método helper que está no User.php ('A')
-        });
-
-        // 👨‍💻 Quem é considerado FUNCIONÁRIO pelas rotas
-        Gate::define('employee', function (User $user) {
-            return $user->isEmployee(); // Usa o método helper que está no User.php ('F')
-        });
-
+        
         try {
             // Share all colors (for dropdowns everywhere)
             View::share('sharedColors', Color::orderBy('name')->get());
@@ -144,6 +124,7 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // Silently fail - database might not exist during migration
         }
+        
     }
 
     /**

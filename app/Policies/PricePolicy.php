@@ -8,12 +8,20 @@ use Illuminate\Auth\Access\Response;
 
 class PricePolicy
 {
+        public function before(?User $user, string $ability): bool|null
+    {
+        if ($user?->isAdmin()) {
+            return true;
+        }
+        return null;
+    }
+    
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -21,7 +29,7 @@ class PricePolicy
      */
     public function view(User $user, Price $price): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -29,7 +37,7 @@ class PricePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -37,7 +45,7 @@ class PricePolicy
      */
     public function update(User $user, Price $price): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -45,7 +53,7 @@ class PricePolicy
      */
     public function delete(User $user, Price $price): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -53,7 +61,7 @@ class PricePolicy
      */
     public function restore(User $user, Price $price): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -61,6 +69,6 @@ class PricePolicy
      */
     public function forceDelete(User $user, Price $price): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 }

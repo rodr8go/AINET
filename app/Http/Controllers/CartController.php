@@ -61,8 +61,8 @@ class CartController extends Controller
             ];
         }
 
-        // 🔄 RECALCULAR O PREÇO UNITÁRIO BASEADO NA QUANTIDADE ACUMULADA
-        // Isto garante que se o utilizador adicionar 3 MAs e depois mais 3 MAs, ele atinge as 6 un. e ganha o desconto!
+        //RECALCULAR O PREÇO UNITÁRIO BASEADO NA QUANTIDADE ACUMULADA
+        //Isto garante que se o utilizador adicionar 3 MAs e depois mais 3 MAs, ele atinge as 6 un. e ganha o desconto!
         if ($cart[$itemKey]['qty'] >= $qtyDiscountLimit) {
             $cart[$itemKey]['unit_price'] = $discountPrice;
         } else {
@@ -76,7 +76,45 @@ class CartController extends Controller
             ->with('alert-msg', "T-shirt {$tshirtImage->name} adicionada ao carrinho!");
     }
 
-    // Remover um item do carrinho (Nome do parâmetro ajustado para bater certo com a rota {itemId})
+    //Atualizar quantidade de um item no carrinho
+    public function update(Request $request, $itemId)
+    {
+        $cart = session()->get('cart', []);
+        
+        if (isset($cart[$itemId])) {
+            //Validar a quantidade
+            $request->validate([
+                'quantity' => 'required|integer|min:1|max:999',
+            ]);
+            
+            //Atualizar a quantidade
+            $cart[$itemId]['qty'] = $request->quantity;
+            
+            //Recalcular o preço unitário baseado na nova quantidade
+            $priceRules = DB::table('prices')->first();
+            $basePrice = $priceRules ? (float) $priceRules->unit_price_catalog : 10.00;
+            $discountPrice = $priceRules ? (float) $priceRules->unit_price_catalog_discount : 8.50;
+            $qtyDiscountLimit = $priceRules ? (int) $priceRules->qty_discount : 5;
+            
+            if ($cart[$itemId]['qty'] >= $qtyDiscountLimit) {
+                $cart[$itemId]['unit_price'] = $discountPrice;
+            } else {
+                $cart[$itemId]['unit_price'] = $basePrice;
+            }
+            
+            session()->put('cart', $cart);
+            
+            return redirect()->route('cart.show')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', 'Quantidade atualizada com sucesso!');
+        }
+        
+        return redirect()->route('cart.show')
+            ->with('alert-type', 'error')
+            ->with('alert-msg', 'Item não encontrado no carrinho.');
+    }
+
+    //Remover um item do carrinho (Nome do parâmetro ajustado para bater certo com a rota {itemId})
     public function remove($itemId)
     {
         $cart = session()->get('cart', []);
@@ -91,7 +129,7 @@ class CartController extends Controller
             ->with('alert-msg', 'Item removido do carrinho.');
     }
 
-    // Limpar o carrinho todo
+    //Limpar o carrinho todo
     public function destroy()
     {
         session()->forget('cart');
