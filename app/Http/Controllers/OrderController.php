@@ -22,14 +22,12 @@ class OrderController extends Controller
         $this->receiptService = $receiptService;
     }
 
-    /**
-     * Display a listing of the user's own orders (customer view)
-     */
+    //Customer: myOrders
     public function myOrders(): View
     {
         $user = Auth::user();
 
-        // Ensure the authenticated user has an associated customer record
+        //Verificar se user auth tem um customer account
         if (!$user || !$user->customer) {
             abort(403, 'Only customers can view orders.');
         }
@@ -44,12 +42,9 @@ class OrderController extends Controller
         return view('orders.myOrders', compact('orders'));
     }
 
-    /**
-     * Display the specified order (customer view - their own orders only)
-     */
     public function show(Order $order): View
     {
-        // Authorize that the user can view this order
+        //Autorizar a view da ORDER
         Gate::authorize('view', $order);
 
         $order->load('items.tshirtImage', 'items.color', 'customer.user');
@@ -66,25 +61,25 @@ class OrderController extends Controller
             abort(403, 'Apenas encomendas pagas ou concluídas têm recibo.');
         }
 
-        // 2. 🎯 ESTRATÉGIA DE CAMINHOS SEPARADOS
+        //ESTRATÉGIA DE CAMINHOS SEPARADOS
         if ($order->id <= 4800) {
-            // Encomendas Antigas (Pasta Private)
+            //Encomendas Antigas (Pasta Private)
 
-            // Tentativa 1: Tenta o nome padrão correto que vimos na tua pasta: receipt_X.pdf
+            //Tentativa 1: Tenta o nome padrão correto que vimos na tua pasta: receipt_X.pdf
             $path = storage_path('app/private/pdf_receipts/receipt_' . $order->id . '.pdf');
-            // Tentativa 2: Se o anterior não existir, tenta o que está guardado na BD
+            //Tentativa 2: Se o anterior não existir, tenta o que está guardado na BD
             if (!file_exists($path) && !empty($order->receipt_url)) {
                 $path = storage_path('app/private/pdf_receipts/' . $order->receipt_url);
             }
-            // Se nenhuma das duas opções existir fisicamente, aí sim dá 404
+            //Se nenhuma das duas opções existir fisicamente, aí sim dá 404
             if (!file_exists($path)) {
                 abort(404, "O recibo físico da encomenda #{$order->id} não existe em storage/app/pdf_receipts/");
             }
         } else {
-            // Encomendas Novas (Pasta Public)
+            //Encomendas Novas (Pasta Public)
             $path = storage_path('app/public/pdf_receipts/' . $order->receipt_url);
 
-            // Se não existir nas novas, o teu ReceiptService gera-o na pasta pública
+            //Se não existir nas novas, o teu ReceiptService gera-o na pasta pública
             if (empty($order->receipt_url) || !file_exists($path)) {
                 if (isset($this->receiptService)) {
                     $this->receiptService->generateReceipt($order);
@@ -145,19 +140,19 @@ class OrderController extends Controller
 
         $ordersQuery = Order::with('customer.user');
 
-        // Filter by status
+        //Filtro por STATUS
         if ($request->filled('status')) {
             $ordersQuery->where('status', $request->status);
         }
 
-        // Filter by customer name
+        //Filtro por NOME
         if ($request->filled('customer_name')) {
             $ordersQuery->whereHas('customer.user', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->customer_name . '%');
             });
         }
 
-        // Filter by date range
+        //Filtro por periodo de tempo
         if ($request->filled('date_from')) {
             $ordersQuery->whereDate('date', '>=', $request->date_from);
         }
@@ -184,7 +179,7 @@ class OrderController extends Controller
         $order->status = $request->status;
         $order->save();
 
-        // If order is being closed, generate receipt
+        //Gerar recibo no fecho da order
         if ($request->status === Order::STATUS_CLOSED && $oldStatus !== Order::STATUS_CLOSED) {
             // TODO: Generate PDF receipt and send email
         }
