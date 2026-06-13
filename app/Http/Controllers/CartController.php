@@ -32,23 +32,18 @@ class CartController extends Controller
 
         $cart = session()->get('cart', []);
 
-        // Criar uma chave única para o item baseada na imagem, cor e tamanho
         $itemKey = $tshirtImage->id . '-' . $request->color_code . '-' . $request->size;
 
-        // Buscar as informações da cor
         $color = Color::where('code', $request->color_code)->first();
 
-        // 💰 BUSCAR REGRAS DE PREÇO DA BASE DE DADOS
         $priceRules = DB::table('prices')->first();
-        $basePrice = $priceRules ? (float) $priceRules->unit_price_catalog : 10.00;
-        $discountPrice = $priceRules ? (float) $priceRules->unit_price_catalog_discount : 8.50;
+        $basePrice = $priceRules ? (float) ($tshirtImage->customer_id ? $priceRules->unit_price_own : $priceRules->unit_price_catalog) : 10.00;
+        $discountPrice = $priceRules ? (float) ($tshirtImage->customer_id ? $priceRules->unit_price_own_discount : $priceRules->unit_price_catalog_discount) : 8.50;
         $qtyDiscountLimit = $priceRules ? (int) $priceRules->qty_discount : 5;
 
-        // Se o item já existe no carrinho, incrementa a quantidade
         if (isset($cart[$itemKey])) {
             $cart[$itemKey]['qty'] += $request->qty;
         } else {
-            // Caso contrário, adiciona o novo item
             $cart[$itemKey] = [
                 'tshirt_image_id' => $tshirtImage->id,
                 'name' => $tshirtImage->name,
@@ -62,8 +57,6 @@ class CartController extends Controller
             ];
         }
 
-        //RECALCULAR O PREÇO UNITÁRIO BASEADO NA QUANTIDADE ACUMULADA
-        //Isto garante que se o utilizador adicionar 3 MAs e depois mais 3 MAs, ele atinge as 6 un. e ganha o desconto!
         if ($cart[$itemKey]['qty'] >= $qtyDiscountLimit) {
             $cart[$itemKey]['unit_price'] = $discountPrice;
         } else {
@@ -73,7 +66,6 @@ class CartController extends Controller
         session()->put('cart', $cart);
 
         return redirect()->route('cart.show')
-            ->with('alert-type', 'success')
             ->with('alert-msg', "T-shirt {$tshirtImage->name} adicionada ao carrinho!");
     }
 
@@ -81,35 +73,35 @@ class CartController extends Controller
     public function update(Request $request, $itemId)
     {
         $cart = session()->get('cart', []);
-        
+
         if (isset($cart[$itemId])) {
             //Validar a quantidade
             $request->validate([
                 'quantity' => 'required|integer|min:1|max:999',
             ]);
-            
+
             //Atualizar a quantidade
             $cart[$itemId]['qty'] = $request->quantity;
-            
+
             //Recalcular o preço unitário baseado na nova quantidade
             $priceRules = DB::table('prices')->first();
             $basePrice = $priceRules ? (float) $priceRules->unit_price_catalog : 10.00;
             $discountPrice = $priceRules ? (float) $priceRules->unit_price_catalog_discount : 8.50;
             $qtyDiscountLimit = $priceRules ? (int) $priceRules->qty_discount : 5;
-            
+
             if ($cart[$itemId]['qty'] >= $qtyDiscountLimit) {
                 $cart[$itemId]['unit_price'] = $discountPrice;
             } else {
                 $cart[$itemId]['unit_price'] = $basePrice;
             }
-            
+
             session()->put('cart', $cart);
-            
+
             return redirect()->route('cart.show')
                 ->with('alert-type', 'success')
                 ->with('alert-msg', 'Quantidade atualizada com sucesso!');
         }
-        
+
         return redirect()->route('cart.show')
             ->with('alert-type', 'error')
             ->with('alert-msg', 'Item não encontrado no carrinho.');
