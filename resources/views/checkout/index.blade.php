@@ -10,7 +10,6 @@
                     <form action="{{ route('checkout.store') }}" method="POST" class="space-y-6">
                         @csrf
 
-                        //Dados do Cliente(pré-preenchidos)
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-zinc-900 dark:text-white border-b pb-2 border-zinc-100 dark:border-zinc-800">
                                 Informação do Cliente

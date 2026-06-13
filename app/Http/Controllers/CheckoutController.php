@@ -161,7 +161,7 @@ class CheckoutController extends Controller
                 'total_price'  => $totalPrice,
                 'notes'        => $request->notes,
                 'nif'          => $request->nif ?? $customer?->nif,
-                'address'      => $customer?->address ?? 'Morada não especificada',
+                'address'      => $request->address ?? $customer?->address ?? 'Morada não especificada',
                 'payment_type' => $request->payment_type,
                 'payment_ref'  => $request->payment_ref,
                 'receipt_url'  => null,
