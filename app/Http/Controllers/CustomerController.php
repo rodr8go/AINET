@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\CustomerFormRequest;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller implements HasMiddleware
 {
@@ -236,5 +237,108 @@ class CustomerController extends Controller implements HasMiddleware
         return redirect()->back()
             ->with('alert-type', 'success')
             ->with('alert-msg', "Customer {$user->name} has been successfully {$status}!");
+    }
+
+        /**
+     * Show the form for editing the authenticated customer's own profile
+     */
+    public function editSelf(): View
+    {
+        $user = Auth::user();
+        $customer = $user->customer;
+        
+        // Verifica se o utilizador é realmente um cliente
+        if (!$customer || !$user->isCustomer()) {
+            abort(403, 'Apenas clientes podem aceder a esta página.');
+        }
+        
+        $customer->load('user');
+        return view('customers.edit-self', compact('customer'));
+    }
+
+    /**
+     * Update the authenticated customer's own profile
+     */
+    public function updateSelf(CustomerFormRequest $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $customer = $user->customer;
+        
+        if (!$customer || !$user->isCustomer()) {
+            abort(403, 'Apenas clientes podem aceder a esta página.');
+        }
+        
+        $validatedData = $request->validated();
+
+        // Update User
+        $user->name = $validatedData['name'];
+        $user->email = $validatedData['email'];
+        $user->gender = $validatedData['gender'];
+        $user->save();
+
+        // Update Customer
+        $customer->nif = $validatedData['nif'] ?? null;
+        $customer->address = $validatedData['address'] ?? null;
+        $customer->default_payment_type = $validatedData['default_payment_type'] ?? null;
+        $customer->default_payment_ref = $validatedData['default_payment_ref'] ?? null;
+        $customer->save();
+
+        // Handle photo update
+        if ($request->hasFile('photo_file')) {
+            $this->deleteUserPhoto($user);
+            $this->storeUserPhoto($request->photo_file, $user);
+        }
+
+        return redirect()->route('customer.profile.edit')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Perfil atualizado com sucesso!');
+    }
+
+    /**
+     * Delete the authenticated customer's profile photo
+     */
+    public function destroySelfPhoto(): RedirectResponse
+    {
+        $user = Auth::user();
+        $customer = $user->customer;
+        
+        if (!$customer || !$user->isCustomer()) {
+            abort(403, 'Apenas clientes podem aceder a esta página.');
+        }
+        
+        if ($this->deleteUserPhoto($user)) {
+            return redirect()->back()
+                ->with('alert-type', 'success')
+                ->with('alert-msg', 'Foto removida com sucesso!');
+        }
+        
+        return redirect()->back()
+            ->with('alert-type', 'error')
+            ->with('alert-msg', 'Não foi possível remover a foto.');
+    }
+
+    /**
+     * Update the authenticated customer's password
+     */
+    public function updateSelfPassword(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $customer = $user->customer;
+        
+        if (!$customer || !$user->isCustomer()) {
+            abort(403, 'Apenas clientes podem aceder a esta página.');
+        }
+        
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $user->password = bcrypt($request->password);
+        $user->save();
+
+        return redirect()->back()
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Password alterada com sucesso!');
     }
 }

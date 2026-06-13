@@ -28,6 +28,7 @@ class CartConfirmationFormRequest extends FormRequest
             'payment_type' => 'required|in:Visa,PayPal,MB WAY',
             'payment_ref'  => 'required|string',
             'nif'          => 'required|digits:9',
+            'address'      => 'required|string|max:500',
             'notes'        => 'nullable|string',
         ];
     }
