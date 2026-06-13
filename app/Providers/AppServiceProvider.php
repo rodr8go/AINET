@@ -86,7 +86,7 @@ class AppServiceProvider extends ServiceProvider
         
         //Quem pode finalizar compras
         Gate::define('confirm-cart', function (User $user) {
-            return $user->isCustomer() || $user->isAdmin() || $user->isEmployee();
+            return $user === null || $user->isCustomer();
         });
 
         //Utilizadores
