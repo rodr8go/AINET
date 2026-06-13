@@ -6,7 +6,9 @@ use Laravel\Fortify\Features;
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
-    Route::livewire('settings/profile', 'pages::settings.profile')->name('profile.edit');
+    Route::get('settings/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('settings/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+Route::patch('settings/profile/password', [App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

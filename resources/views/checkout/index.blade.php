@@ -54,7 +54,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <flux:input name="nif"
-                                        label="NIF para Faturação (Opcional)"
+                                        label="NIF para Faturação"
                                         placeholder="Ex: 999999999"
                                         value="{{ old('nif', Auth::user()->customer->nif ?? '') }}" />
                                     @error('nif')
