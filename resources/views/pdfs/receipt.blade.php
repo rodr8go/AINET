@@ -156,7 +156,7 @@
         
         {{-- Header with Logo --}}
         <div class="header">
-            <div class="logo">🎨 FunShirt</div>
+            <div class="logo">FunShirt</div>
             <div class="tagline">Custom T-Shirts &amp; Printing</div>
             <div class="tagline">Rua das Camisetas, 123 | 2400-000 Leiria | Portugal</div>
         </div>
@@ -180,7 +180,7 @@
             <div class="info-row">
                 <div class="info-label">Order Status:</div>
                 <div class="info-value">
-                    <span class="status-badge status-closed">✓ COMPLETED</span>
+                    <span class="status-badge status-closed">COMPLETED</span>
                 </div>
             </div>
         </div>
