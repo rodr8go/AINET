@@ -17,8 +17,7 @@ class CustomerPolicy
         if ($user?->admin) {
             return true;
         }
-        // When "Before" returns null, other methods (eg. viewAny, view, etc...) will be
-        // used to check the user authorizaiton
+    
         return null;
     }
 
