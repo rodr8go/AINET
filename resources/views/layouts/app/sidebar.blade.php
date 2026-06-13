@@ -25,7 +25,7 @@
                 <flux:navlist.item icon="shopping-cart" icon:variant="solid" :href="route('cart.show')"
                     :current="request()->routeIs('cart.show')" wire:navigate>
                     <div class="flex items-center justify-between w-full">
-                        <span>Shopping Cart</span>
+                        <span>Carrinho de Compras</span>
                         <span class="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white shadow-sm">
                             {{ count(session('cart', [])) }}
                         </span>
@@ -34,7 +34,7 @@
             @else
                 <flux:navlist.item icon="shopping-cart" :href="route('cart.show')"
                     :current="request()->routeIs('cart.show')" wire:navigate>
-                    Shopping Cart
+                    Carrinho de Compras
                 </flux:navlist.item>
             @endif
         @endcan
