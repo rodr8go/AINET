@@ -81,15 +81,16 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:confirm-cart')
         ->name('checkout.store');
 
-// ===== EMPLOYEE =====
-Route::middleware(['can:employee'])->group(function () {
-    Route::get('employee/orders/pending', [OrderController::class, 'pending'])
-        ->name('employee.orders.pending');
-    Route::get('employee/orders/{order}', [OrderController::class, 'employeeShow'])
-        ->name('employee.orders.show');
-    Route::patch('employee/orders/{order}/close', [OrderController::class, 'close'])
-        ->name('employee.orders.close');
-});
+    Route::patch('orders/{order}/close', [OrderController::class, 'close'])
+    ->name('orders.close')
+    ->middleware(['auth', 'can:update,order']);
+
+    // ===== EMPLOYEE =====
+    Route::middleware(['can:employee'])->group(function () {
+        Route::get('employee/orders/pending', [OrderController::class, 'pending'])->name('employee.orders.pending');
+        Route::get('employee/orders/{order}', [OrderController::class, 'employeeShow'])->name('employee.orders.show');
+        Route::patch('employee/orders/{order}/close', [OrderController::class, 'close'])->name('employee.orders.close');
+        });
 
     // ===== ADMIN ONLY =====
     Route::middleware(['can:admin'])->group(function () {

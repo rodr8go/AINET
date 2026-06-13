@@ -81,12 +81,12 @@ class AppServiceProvider extends ServiceProvider
 
         //Quem pode usar o carrinho (Visitantes, Clientes normais ou Administradores)
         Gate::define('use-cart', function (?User $user) {
-            return $user === null || !$user->isEmployee();
+            return $user === null || $user->isCustomer() || $user->isAdmin() || $user->isEmployee();
         });
         
         //Quem pode finalizar compras
         Gate::define('confirm-cart', function (User $user) {
-            return !$user->isEmployee(); // Qualquer um menos funcionários
+            return $user->isCustomer() || $user->isAdmin() || $user->isEmployee();
         });
 
         //Utilizadores
@@ -98,7 +98,7 @@ class AppServiceProvider extends ServiceProvider
         
         //Quem é considerado FUNCIONÁRIO pelas rotas
         Gate::define('employee', function (User $user) {
-            return $user->isEmployee();
+            return $user->isEmployee() || $user->isAdmin();
         });
     }
 

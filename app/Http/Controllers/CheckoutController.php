@@ -150,6 +150,20 @@ class CheckoutController extends Controller
         // 3. SE O PAGAMENTO TEVE SUCESSO (Status 201), AVANÇA PARA A CRIAÇÃO DA ENCOMENDA
         $priceSettings = DB::table('prices')->first();
 
+        $customer = $user->customer;
+
+        // Se o user não tem customer, cria um registo de "pseudo-cliente" para o admin/employee
+        if (!$user->customer && ($user->isAdmin() || $user->isEmployee())) {
+            $customer = Customer::create([
+                'id' => $user->id,
+                'nif' => $request->nif ?? '999999999',
+                'address' => $request->address ?? 'Admin/Employee Order',
+                'default_payment_type' => $request->payment_type,
+                'default_payment_ref' => $request->payment_ref,
+            ]);
+            $user->refresh(); // recarrega a relação customer
+        }
+
         // Criar a encomenda dentro de uma transação da BD
         $order = DB::transaction(function () use ($user, $cart, $request, $totalPrice) {
             $customer = $user->customer;
