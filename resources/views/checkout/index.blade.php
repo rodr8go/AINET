@@ -10,10 +10,44 @@
                     <form action="{{ route('checkout.store') }}" method="POST" class="space-y-6">
                         @csrf
 
+                        //Dados do Cliente(pré-preenchidos)
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold text-zinc-900 dark:text-white border-b pb-2 border-zinc-100 dark:border-zinc-800">
+                                Informação do Cliente
+                            </h3>
+                            
+                            <div>
+                                <flux:label class="mb-2 block">Nome</flux:label>
+                                <input type="text" 
+                                       value="{{ Auth::user()->name }}" 
+                                       class="w-full border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-600 dark:text-zinc-400 cursor-not-allowed"
+                                       readonly disabled>
+                            </div>
+
+                            <div>
+                                <flux:label class="mb-2 block">Email</flux:label>
+                                <input type="email" 
+                                       value="{{ Auth::user()->email }}" 
+                                       class="w-full border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-600 dark:text-zinc-400 cursor-not-allowed"
+                                       readonly disabled>
+                            </div>
+                        </div>
+
                         <div class="space-y-4">
                             <h3 class="text-lg font-semibold text-zinc-900 dark:text-white border-b pb-2 border-zinc-100 dark:border-zinc-800">
                                 Informação de Envio
                             </h3>
+                            
+                            <div>
+                                <flux:input name="address"
+                                    label="Morada de Envio"
+                                    placeholder="Ex: Rua das Camisetas, 123, 2400-000 Leiria"
+                                    value="{{ old('address', Auth::user()->customer->address ?? '') }}" />
+                                @error('address')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div>
                                 <flux:input name="notes"
                                     label="Notas da Encomenda (Opcional)"
@@ -30,10 +64,11 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <flux:label class="mb-2 block text-sm">Tipo de Pagamento</flux:label>
-                                    <select name="payment_type" class="w-full border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-800 dark:text-zinc-200">
-                                        <option value="Visa" {{ old('payment_type') == 'Visa' ? 'selected' : '' }}>Visa</option>
-                                        <option value="PayPal" {{ old('payment_type') == 'PayPal' ? 'selected' : '' }}>PayPal</option>
-                                        <option value="MB WAY" {{ old('payment_type') == 'MB WAY' ? 'selected' : '' }}>MB WAY</option>
+                                    <select name="payment_type" 
+                                            class="w-full border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-800 dark:text-zinc-200">
+                                        <option value="Visa" {{ old('payment_type', Auth::user()->customer->default_payment_type ?? '') == 'Visa' ? 'selected' : '' }}>Visa</option>
+                                        <option value="PayPal" {{ old('payment_type', Auth::user()->customer->default_payment_type ?? '') == 'PayPal' ? 'selected' : '' }}>PayPal</option>
+                                        <option value="MB WAY" {{ old('payment_type', Auth::user()->customer->default_payment_type ?? '') == 'MB WAY' ? 'selected' : '' }}>MB WAY</option>
                                     </select>
                                     @error('payment_type')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
@@ -44,7 +79,7 @@
                                     <flux:input name="payment_ref"
                                         label="Referência / Nº Cartão"
                                         placeholder="Ex: 1234567890123456"
-                                        value="{{ old('payment_ref') }}" />
+                                        value="{{ old('payment_ref', Auth::user()->customer->default_payment_ref ?? '') }}" />
                                     @error('payment_ref')
                                     <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                                     @enderror
