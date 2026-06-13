@@ -54,10 +54,10 @@ class MyImageController extends Controller
         if ($request->hasFile('image_file')) {
             $file = $request->file('image_file');
             
-            // 🎯 GERAR NOME ÚNICO (Para evitar ficheiros duplicados com o mesmo nome)
+            //GERAR NOME ÚNICO (Para evitar ficheiros duplicados com o mesmo nome)
             $filename = $customerId . '_' . time() . '.' . $file->getClientOriginalExtension();
 
-            // 📁 CAMINHO REAL ABSOLUTO: storage/app/private/tshirt_images_private
+            //CAMINHO REAL ABSOLUTO: storage/app/private/tshirt_images_private
             $destinationPath = storage_path('app/private/tshirt_images_private');
 
             // Se a pasta física ainda não existir por algum motivo, o PHP cria-a na hora
@@ -65,10 +65,10 @@ class MyImageController extends Controller
                 mkdir($destinationPath, 0755, true);
             }
 
-            // 💾 Mover o ficheiro diretamente para a pasta certa usando o PHP nativo (à prova de falhas do Trait)
+            //Mover o ficheiro diretamente para a pasta certa usando o PHP nativo (à prova de falhas do Trait)
             $file->move($destinationPath, $filename);
 
-            // 📝 Guardar o registo na Base de Dados com o nome do ficheiro gerado
+            //Guardar o registo na Base de Dados com o nome do ficheiro gerado
             TshirtImage::create([
                 'customer_id' => $customerId,
                 'name' => $request->name,
@@ -78,16 +78,14 @@ class MyImageController extends Controller
         }
 
         return redirect()->route('my-images.index')->with('success', 'Imagem guardada com sucesso!');    
-}
+    }
 
-    /**
-     * Apaga a imagem da pasta PRIVADA
-     */
+    //Apaga a imagem da pasta PRIVADA
+
     public function destroy($id)
     {
         $image = TshirtImage::findOrFail($id);
 
-        // 🎯 CORREÇÃO: Apaga da pasta certa
         $this->deleteImage($image->image_url, 'tshirt_images_private');
 
         $image->delete();

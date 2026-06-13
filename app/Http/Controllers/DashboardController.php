@@ -12,20 +12,18 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * Show dashboard - adapts to user type
-     */
+    //Dashboard
     public function index()
     {
         $user = Auth::user();
         
-        // Common data for all users
+        //Info geral
         $data = [
             'user' => $user,
             'userType' => $this->getUserTypeLabel($user),
         ];
         
-        // Add role-specific data
+        //Info Especifica
         if ($user->isAdmin()) {
             $data = array_merge($data, $this->getAdminData());
         } elseif ($user->isEmployee()) {
@@ -37,9 +35,6 @@ class DashboardController extends Controller
         return view('dashboard.index', $data);
     }
     
-    /**
-     * Get user type label for display
-     */
     private function getUserTypeLabel(User $user): string
     {
         if ($user->isAdmin()) return 'Administrator';
@@ -47,34 +42,31 @@ class DashboardController extends Controller
         return 'Customer';
     }
     
-    /**
-     * Get admin-specific dashboard data
-     */
     private function getAdminData(): array
     {
-        // Recent orders (last 10)
+        //Orders recentes
         $recentOrders = Order::with('customer.user')
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
         
-        // Order statistics by status
+        //Stats por STATUS
         $orderStats = [
             'pending' => Order::where('status', 'pending')->count(),
             'closed' => Order::where('status', 'closed')->count(),
             'canceled' => Order::where('status', 'canceled')->count(),
         ];
         
-        // Total sales (closed orders only)
+        //Vendas totais
         $totalSales = Order::where('status', 'closed')->sum('total_price');
         
-        // Sales this month
+        //Vendas mensais
         $salesThisMonth = Order::where('status', 'closed')
             ->whereMonth('date', now()->month)
             ->whereYear('date', now()->year)
             ->sum('total_price');
         
-        // User counts
+        //Contador USERS
         $userCounts = [
             'customers' => Customer::count(),
             'employees' => User::where('user_type', 'F')->count(),
@@ -82,7 +74,7 @@ class DashboardController extends Controller
             'blocked' => User::where('blocked', true)->count(),
         ];
         
-        // Catalog statistics
+        //Stats Catalogo
         $catalogStats = [
             'total_images' => TshirtImage::whereNull('customer_id')->count(),
             'custom_images' => TshirtImage::whereNotNull('customer_id')->count(),
@@ -90,7 +82,7 @@ class DashboardController extends Controller
             'colors' => \App\Models\Color::count(),
         ];
         
-        // Monthly sales for chart (last 6 months)
+        //Vendas mensais para grafico(6meses)
         $monthlySales = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
@@ -116,22 +108,19 @@ class DashboardController extends Controller
         ];
     }
     
-    /**
-     * Get employee-specific dashboard data
-     */
     private function getEmployeeData(): array
     {
-        // Pending orders count
+        //Contador Orders PENDENTES
         $pendingOrdersCount = Order::where('status', 'pending')->count();
         
-        // Pending orders (for processing)
+        //Orders PENDENTES
         $pendingOrders = Order::with('customer.user')
             ->where('status', 'pending')
             ->orderBy('date', 'asc')
             ->limit(10)
             ->get();
         
-        // Recent closed orders (last 7 days)
+        //Orders fechadas recentemente(7dias)
         $recentClosed = Order::with('customer.user')
             ->where('status', 'closed')
             ->where('date', '>=', now()->subDays(7))
@@ -139,13 +128,13 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
         
-        // Orders processed this month
+        //ORDERS processadas este mes
         $processedThisMonth = Order::where('status', 'closed')
             ->whereMonth('date', now()->month)
             ->whereYear('date', now()->year)
             ->count();
         
-        // Today's orders (pending)
+        //ORDERS pendentes de hoje
         $todaysOrders = Order::where('status', 'pending')
             ->whereDate('date', today())
             ->count();
@@ -159,20 +148,18 @@ class DashboardController extends Controller
         ];
     }
     
-    /**
-     * Get customer-specific dashboard data
-     */
+    //Obter data clientes
     private function getCustomerData(User $user): array
     {
         $customer = $user->customer;
         
-        // Recent orders (last 5)
+        //ODERS recentes
         $recentOrders = Order::where('customer_id', $customer->id)
             ->orderBy('date', 'desc')
             ->limit(5)
             ->get();
         
-        // Order statistics
+        //STATS Orders
         $orderStats = [
             'total' => Order::where('customer_id', $customer->id)->count(),
             'pending' => Order::where('customer_id', $customer->id)->where('status', 'pending')->count(),
@@ -180,15 +167,15 @@ class DashboardController extends Controller
             'canceled' => Order::where('customer_id', $customer->id)->where('status', 'canceled')->count(),
         ];
         
-        // Total spent
+        //Total gasto
         $totalSpent = Order::where('customer_id', $customer->id)
             ->where('status', 'closed')
             ->sum('total_price');
         
-        // Custom images count
+        //Contador imagens personalizadas
         $customImagesCount = TshirtImage::where('customer_id', $customer->id)->count();
         
-        // Last order
+        //Ultima ORDER
         $lastOrder = Order::where('customer_id', $customer->id)
             ->orderBy('date', 'desc')
             ->first();
