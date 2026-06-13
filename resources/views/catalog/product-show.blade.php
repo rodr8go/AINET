@@ -115,13 +115,14 @@
                             @endif
                         </div>
                     </div>
-
+                    @can('!employee, !admin')
                     <div class="pt-2">
                         <flux:button type="submit" variant="filled" color="zinc" icon="shopping-cart"
                                      class="w-full bg-white hover:bg-zinc-200 text-zinc-950 font-extrabold text-base py-4 rounded-xl shadow-lg border-transparent transition-all transform active:scale-[0.99] justify-center">
                             Adicionar ao Carrinho
                         </flux:button>
                     </div>
+                    @endcan
                 </form>
 
             </div>

@@ -51,17 +51,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('my-images', MyImageController::class)->only([
         'index', 'create', 'store', 'destroy'
     ]);
-    Route::get('my-images/{id}/image', [MyImageController::class, 'showImage'])
-        ->name('my-images.show-image');
-    Route::get('/my-images/{id}/preview', MyImagePreview::class)
-        ->name('my-images.preview');
+    Route::get('my-images/{id}/image', [MyImageController::class, 'showImage'])->name('my-images.show-image');
+    Route::get('/my-images/{id}/preview', MyImagePreview::class)->name('my-images.preview');
 
-    // Profile
-    Route::middleware(['can:view-profile'])->group(function () {
-        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::patch('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
-        Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    //Customer 
+    Route::middleware(['auth'])->group(function () {
+        Route::get('customer/profile', [CustomerController::class, 'editSelf'])->name('customer.profile.edit');
+        Route::patch('customer/profile', [CustomerController::class, 'updateSelf'])->name('customer.profile.update');
+        Route::delete('customer/profile/photo', [CustomerController::class, 'destroySelfPhoto'])->name('customer.profile.photo.destroy');
     });
 
     // Customer Orders
