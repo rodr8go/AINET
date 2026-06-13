@@ -7,13 +7,19 @@ use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
-    //CHECK IF ADMIN BEFORE
     public function before(?User $user, string $ability): bool|null
     {
-        //PREVENTS ADMIN FROM REMOVING OWN ADMIN STATUS
+        // Impedir admin de remover o próprio admin status
         if ($ability === 'updateAdmin') {
             return null;
         }
+        
+        // Para a ação 'block', NÃO retornar true automaticamente
+        // Assim o método block() será chamado
+        if ($ability === 'block') {
+            return null;  // ← DEIXA O MÉTODO block() DECIDIR
+        }
+        
         if ($user?->isAdmin()) {
             return true;
         }
