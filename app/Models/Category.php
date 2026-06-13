@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 
 class Category extends Model
 {
+    public $timestamps = false;
     use SoftDeletes;
     
     //====================CASTS===========================
