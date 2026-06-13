@@ -103,9 +103,6 @@ class OrderController extends Controller
     
     // ==================== EMPLOYEE METHODS ====================
 
-    /**
-     * Display pending orders (employee view)
-     */
     public function pending()
     {
         $orders = Order::where('status', 'pending')
@@ -116,9 +113,6 @@ class OrderController extends Controller
         return view('employee.orders.pending', compact('orders'));
     }
 
-    /**
-     * Close an order (mark as shipped/processed)
-     */
     public function close(Order $order)
     {
         // Garante que a encomenda está mesmo pendente antes de fechar
@@ -145,9 +139,6 @@ class OrderController extends Controller
     
     // ==================== ADMIN METHODS ====================
 
-    /**
-     * Display all orders (admin view)
-     */
     public function index(Request $request): View
     {
         Gate::authorize('viewAny', Order::class);
@@ -181,9 +172,6 @@ class OrderController extends Controller
         return view('admin.orders.index', compact('orders'));
     }
 
-    /**
-     * Update order status (admin)
-     */
     public function updateStatus(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('update', $order);
@@ -206,9 +194,6 @@ class OrderController extends Controller
             ->with('alert-msg', "Order #{$order->id} status updated to {$request->status}.");
     }
 
-    /**
-     * Cancel an order (admin)
-     */
     public function cancel(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('cancel', $order);
@@ -227,9 +212,33 @@ class OrderController extends Controller
     }
 
     public function employeeShow(Order $order): View
-{
-    $order->load('items.tshirtImage', 'items.color', 'customer.user');
-    return view('employee.orders.show', compact('order'));
-}
+    {
+        $order->load('items.tshirtImage', 'items.color', 'customer.user');
+        return view('employee.orders.show', compact('order'));
+    }
+
+    public function showCancelForm(Order $order): View|RedirectResponse  // ← ALTERAR AQUI
+    {
+        //Auth
+        Gate::authorize('cancel', $order);
+        
+        //Pode ser cancelada?
+        if ($order->status === Order::STATUS_CANCELED) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Esta encomenda já está cancelada.');
+        }
+        
+        if ($order->status === Order::STATUS_CLOSED) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Encomendas fechadas não podem ser canceladas.');
+        }
+        
+        //Carregar os relacionamentos necessários
+        $order->load('items.tshirtImage', 'customer.user');
+        
+        return view('admin.orders.cancel', compact('order'));
+    }
 
 }

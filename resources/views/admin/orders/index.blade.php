@@ -18,9 +18,9 @@
                     <flux:label class="mb-2 block text-sm">Estado</flux:label>
                     <select name="status" class="w-full border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-lg p-2.5 text-sm text-zinc-800 dark:text-zinc-200">
                         <option value="">-- Todos os Estados --</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente (Pending)</option>
-                            <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Fechada (Closed)</option>
-                            <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelada (Canceled)</option>
+                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente (Pending)</option>
+                        <option value="closed" {{ request('status') == 'closed' ? 'selected' : '' }}>Fechada (Closed)</option>
+                        <option value="canceled" {{ request('status') == 'canceled' ? 'selected' : '' }}>Cancelada (Canceled)</option>
                     </select>
                 </div>
 
@@ -58,12 +58,12 @@
                 <table class="w-full text-left border-collapse text-sm text-zinc-800 dark:text-zinc-200">
                     <thead class="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 font-medium">
                         <tr>
-                            <th class="p-4 w-24">ID</th>
+                            <th class="p-4 w-20">ID</th>
                             <th class="p-4">Cliente</th>
                             <th class="p-4">Data de Criação</th>
-                            <th class="p-4">Preço Total</th>
+                            <th class="p-4 text-right">Preço Total</th>
                             <th class="p-4 text-center">Estado</th>
-                            <th class="p-4 w-24 text-center">Ações</th>
+                            <th class="p-4 text-center w-32">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -78,16 +78,16 @@
                                 <td class="p-4 text-zinc-600 dark:text-zinc-400">
                                     {{ \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') }}
                                 </td>
-                                <td class="p-4 font-semibold text-zinc-900 dark:text-white">
+                                <td class="p-4 font-semibold text-zinc-900 dark:text-white text-right">
                                     {{ number_format($order->total_price, 2, ',', '.') }} €
                                 </td>
                                 <td class="p-4 text-center">
                                     @php
                                         $statusColors = [
-                                        'pending' => 'amber',
-                                        'closed'  => 'green',
-                                        'canceled'=> 'red',
-                                    ];
+                                            'pending' => 'amber',
+                                            'closed'  => 'green',
+                                            'canceled'=> 'red',
+                                        ];
                                         $color = $statusColors[$order->status] ?? 'zinc';
                                     @endphp
                                     <flux:badge size="sm" color="{{ $color }}" variant="subtle">
@@ -95,7 +95,24 @@
                                     </flux:badge>
                                 </td>
                                 <td class="p-4 text-center">
-                                    <flux:button href="{{ route('admin.orders.show', $order) }}" variant="subtle" icon="eye" size="sm" />
+                                    <div class="flex items-center justify-center gap-2">
+                                        {{-- Ver detalhes --}}
+                                        <flux:button href="{{ route('admin.orders.show', $order) }}" 
+                                                     variant="subtle" 
+                                                     icon="eye" 
+                                                     size="sm" 
+                                                     title="Ver detalhes" />
+                                        
+                                        {{-- Cancelar encomenda (apenas se estiver pendente) --}}
+                                        @if($order->status === 'pending')
+                                            <flux:button href="{{ route('admin.orders.cancel.form', $order) }}" 
+                                                         variant="subtle" 
+                                                         icon="x-circle" 
+                                                         size="sm" 
+                                                         class="text-red-600 hover:text-red-700" 
+                                                         title="Cancelar encomenda" />
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

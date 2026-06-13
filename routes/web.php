@@ -91,12 +91,18 @@ Route::middleware(['auth'])->group(function () {
 
     // ===== ADMIN ONLY =====
     Route::middleware(['can:admin'])->group(function () {
-        Route::get('admin/orders/pending', [OrderController::class, 'pending'])
-            ->name('admin.orders.pending');
-        Route::get('admin/orders/pending/{order}', [OrderController::class, 'employeeShow'])
-            ->name('admin.orders.show.pending');
-        Route::patch('admin/orders/pending/{order}/close', [OrderController::class, 'close'])
-            ->name('admin.orders.close');
+        Route::get('admin/orders/pending', [OrderController::class, 'pending'])->name('admin.orders.pending');
+        Route::get('admin/orders/pending/{order}', [OrderController::class, 'employeeShow'])->name('admin.orders.show.pending');
+        Route::patch('admin/orders/pending/{order}/close', [OrderController::class, 'close'])->name('admin.orders.close');
+
+        Route::get('admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
+        Route::get('admin/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+        Route::patch('admin/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.status');
+        Route::post('admin/orders/{order}/cancel', [OrderController::class, 'cancel'])
+            ->middleware('can:cancel,order')
+            ->name('admin.orders.cancel');
+        Route::get('admin/orders/{order}/cancel', [OrderController::class, 'showCancelForm'])
+            ->name('admin.orders.cancel.form');
             
         Route::get('admin/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
         Route::patch('admin/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
@@ -115,10 +121,8 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('users/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('admin.users.toggle-block');
         // Cria um "alias" (atalho) para a rota antiga não partir o menu do utilizador
         Route::get('admin/users-compat', [UserController::class, 'index'])->name('users.index');
-        Route::patch('users/{user}/toggle-block', [UserController::class, 'block'])
-            ->name('admin.users.toggle-block');
-        Route::get('admin/users-compat', [UserController::class, 'index'])
-            ->name('users.index');
+        Route::patch('users/{user}/toggle-block', [UserController::class, 'block'])->name('admin.users.toggle-block');
+        Route::get('admin/users-compat', [UserController::class, 'index'])->name('users.index');
 
         Route::resource('customers', CustomerController::class)->except(['create', 'store'])->names([
             'index'   => 'admin.customers.index',
@@ -127,10 +131,8 @@ Route::middleware(['auth'])->group(function () {
             'update'  => 'admin.customers.update',
             'destroy' => 'admin.customers.destroy',
         ]);
-        Route::patch('customers/{customer}/toggle-block', [CustomerController::class, 'toggleBlock'])
-            ->name('admin.customers.toggle-block');
-        Route::get('admin/customers-compat', [CustomerController::class, 'index'])
-            ->name('customers.index');
+        Route::patch('customers/{customer}/toggle-block', [CustomerController::class, 'toggleBlock'])->name('admin.customers.toggle-block');
+        Route::get('admin/customers-compat', [CustomerController::class, 'index'])->name('customers.index');
 
         Route::resource('admin/categories', CategoryController::class)->except(['show'])->names([
             'index'   => 'admin.categories.index',
@@ -157,12 +159,5 @@ Route::middleware(['auth'])->group(function () {
             ->except(['show'])
             ->parameters(['catalog-images' => 'catalogImage']);
 
-        Route::get('admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
-        Route::get('admin/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-        Route::patch('admin/orders/{order}/status', [OrderController::class, 'updateStatus'])
-            ->name('admin.orders.status');
-        Route::post('admin/orders/{order}/cancel', [OrderController::class, 'cancel'])
-            ->middleware('can:cancel,order')
-            ->name('admin.orders.cancel');
     });
 });

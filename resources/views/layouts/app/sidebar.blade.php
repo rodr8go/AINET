@@ -58,7 +58,7 @@
         @endauth
 
         {{-- MENU DO FUNCIONÁRIO --}}
-        @can('employee')
+        @can('employee, !admin')
             <flux:sidebar.nav>
                 <flux:sidebar.group heading="Área de Funcionário" class="grid">
                     <flux:sidebar.item icon="truck" :href="route('employee.orders.pending')"
