@@ -131,7 +131,7 @@
                     <flux:separator />
 
                     <div class="flex items-center justify-end gap-2">
-                        <flux:button href="{{ route('dashboard') }}" variant="ghost">
+                        <flux:button href="{{ route('home') }}" variant="ghost">
                             Cancelar
                         </flux:button>
                         <flux:button type="submit" variant="filled" class="bg-blue-600 hover:bg-blue-700 text-white">
