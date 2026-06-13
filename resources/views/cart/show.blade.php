@@ -127,8 +127,8 @@
                     </div>
 
                     <div class="mt-6">
-                        @can('confirm-cart')
                         @auth
+                            @can('confirm-cart')
                             <div>
                                 <flux:button href="{{ route('checkout.index') }}" 
                                              variant="filled" 
@@ -137,7 +137,7 @@
                                     Finalizar Encomenda
                                 </flux:button>
                             </div>
-                        @endcan
+                            @endcan
                         @else
                             <div class="space-y-3">
                                 <flux:button href="{{ route('login') }}" 
@@ -151,6 +151,7 @@
                                 </p>
                             </div>
                         @endauth
+                        
                     </div>
                 </flux:card>
 
