@@ -137,8 +137,8 @@
                                     Finalizar Encomenda
                                 </flux:button>
                             </div>
-                        @else
                         @endcan
+                        @else
                             <div class="space-y-3">
                                 <flux:button href="{{ route('login') }}" 
                                              variant="filled" 
