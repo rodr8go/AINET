@@ -137,7 +137,6 @@
                                     Finalizar Encomenda
                                 </flux:button>
                             </div>
-                        @endcan
                         @else
                             <div class="space-y-3">
                                 <flux:button href="{{ route('login') }}" 
@@ -151,6 +150,7 @@
                                 </p>
                             </div>
                         @endauth
+                        @endcan
                     </div>
                 </flux:card>
 
