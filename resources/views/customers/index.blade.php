@@ -79,7 +79,6 @@
                                                          title="{{ ($customer->user && $customer->user->blocked) ? 'Unblock' : 'Block' }}" />
                                         </form>
 
-                                        <flux:button href="{{ route('admin.customers.edit', $customer) }}" variant="subtle" icon="pencil" size="sm" />
 
                                         <form action="{{ route('admin.customers.destroy', $customer) }}" method="POST" onsubmit="return confirm('Apply soft delete to this customer?')">
                                             @csrf
