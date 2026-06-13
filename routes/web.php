@@ -81,22 +81,25 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('can:confirm-cart')
         ->name('checkout.store');
 
-    // ===== EMPLOYEE + ADMIN =====
-    Route::middleware(['can:employee'])->group(function () {
-        Route::get('employee/orders/pending', [OrderController::class, 'pending'])
-            ->name('employee.orders.pending');
-        Route::patch('employee/orders/{order}/close', [OrderController::class, 'close'])
-            ->middleware('can:update,order')
-            ->name('employee.orders.close');
-    });
+// ===== EMPLOYEE =====
+Route::middleware(['can:employee'])->group(function () {
+    Route::get('employee/orders/pending', [OrderController::class, 'pending'])
+        ->name('employee.orders.pending');
+    Route::get('employee/orders/{order}', [OrderController::class, 'employeeShow'])
+        ->name('employee.orders.show');
+    Route::patch('employee/orders/{order}/close', [OrderController::class, 'close'])
+        ->name('employee.orders.close');
+});
 
     // ===== ADMIN ONLY =====
     Route::middleware(['can:admin'])->group(function () {
-
-        // Pending Orders (admin também acede)
         Route::get('admin/orders/pending', [OrderController::class, 'pending'])
             ->name('admin.orders.pending');
-
+        Route::get('admin/orders/pending/{order}', [OrderController::class, 'employeeShow'])
+            ->name('admin.orders.show.pending');
+        Route::patch('admin/orders/pending/{order}/close', [OrderController::class, 'close'])
+            ->name('admin.orders.close');
+            
         Route::get('admin/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
         Route::patch('admin/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
         Route::patch('admin/profile/password', [ProfileController::class, 'updatePassword'])->name('admin.profile.password');

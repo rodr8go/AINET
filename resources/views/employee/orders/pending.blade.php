@@ -14,7 +14,7 @@
                     <th class="p-4">ID</th>
                     <th class="p-4">Data</th>
                     <th class="p-4">Cliente</th>
-                    <th class="p-4 text-center">Ações</th>
+                    <th class="p-4 text-right">Ações</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -28,16 +28,13 @@
                     
                     <td class="p-4">{{ $order->customer->user->name ?? 'Cliente Desconhecido' }}</td>
 
-                    <td class="p-4 flex items-center justify-center">
-                        {{-- Formulário para transitar o estado para "closed" --}}
-                        <form action="{{ route('employee.orders.close', $order) }}" method="POST" onsubmit="return confirm('Confirmas a conclusão da estampagem e expedição desta encomenda?')">
-                            @csrf
-                            @method('PATCH')
-
-                            <flux:button type="submit" variant="filled" icon="check" class="bg-green-600 hover:bg-green-700 text-white cursor-pointer">
-                                Concluir e Enviar
-                            </flux:button>
-                        </form>
+                    <td class="p-4 text-right">
+    <flux:button href="{{ auth()->user()->isAdmin() ? route('admin.orders.show.pending', $order) : route('employee.orders.show', $order) }}"
+        variant="filled" icon="eye"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer">
+        Ver Detalhes
+    </flux:button>
+</td>
                     </td>
                 </tr>
                 @endforeach

@@ -30,7 +30,7 @@
                             {{ $color->code }}
                         </td>
                         <td class="p-4 flex items-center gap-3">
-                            <span class="w-4 h-4 rounded-full border border-zinc-400 inline-block bg-zinc-200"></span>
+                            <span class="w-5 h-5 rounded-full border border-zinc-400 inline-block flex-shrink-0" style="background-color: #{{ $color->code }};"></span>
                             {{ $color->name }}
                         </td>
                         <td class="p-4 text-center">

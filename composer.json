@@ -16,7 +16,8 @@
         "laravel/telescope": "^5.20",
         "laravel/tinker": "^3.0",
         "livewire/flux": "^2.13.1",
-        "livewire/livewire": "^4.1"
+        "livewire/livewire": "^4.1",
+        "sabberworm/php-css-parser": "8.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",

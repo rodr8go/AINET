@@ -4,11 +4,7 @@
 
     <div class="space-y-6">
         
-        @if(session('alert-msg'))
-            <flux:card class="p-4 bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200">
-                {{ session('alert-msg') }}
-            </flux:card>
-        @endif
+        
 
         @if(empty($cart) || count($cart) === 0)
             <flux:card class="p-8 text-center text-zinc-500 dark:text-zinc-400 space-y-4">

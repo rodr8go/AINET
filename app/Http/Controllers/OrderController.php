@@ -225,4 +225,11 @@ class OrderController extends Controller
             ->with('alert-type', 'success')
             ->with('alert-msg', "Order #{$order->id} has been canceled.");
     }
+
+    public function employeeShow(Order $order): View
+{
+    $order->load('items.tshirtImage', 'items.color', 'customer.user');
+    return view('employee.orders.show', compact('order'));
+}
+
 }

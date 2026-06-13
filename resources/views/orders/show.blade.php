@@ -47,9 +47,15 @@
                                         {{-- Product Image --}}
                                         <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden flex-shrink-0">
                                             @if($item->tshirtImage && $item->tshirtImage->image_url)
-                                                <img src="{{ asset('storage/tshirt_images/' . $item->tshirtImage->image_url) }}" 
-                                                     alt="{{ $item->tshirtImage->name }}"
-                                                     class="w-full h-full object-cover">
+                                                @if($item->tshirtImage->customer_id)
+                                                    <img src="{{ route('my-images.show-image', $item->tshirtImage->id) }}"
+                                                        alt="{{ $item->tshirtImage->name }}"
+                                                        class="w-full h-full object-cover">
+                                                @else
+                                                    <img src="{{ asset('storage/tshirt_images/' . $item->tshirtImage->image_url) }}"
+                                                        alt="{{ $item->tshirtImage->name }}"
+                                                        class="w-full h-full object-cover">
+                                                @endif
                                             @else
                                                 <div class="w-full h-full flex items-center justify-center text-gray-400">
                                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
