@@ -3,8 +3,7 @@
                          subheading="Altere os dados ou substitua o ficheiro gráfico da estampa">
 
     <flux:card class="max-w-xl p-6">
-        <form action="{{ route('catalog-images.update', $image) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-            @csrf
+<form action="{{ route('catalog-images.update', $image) }}" method="POST" enctype="multipart/form-data" class="space-y-6">            @csrf
             @method('PUT')
 
             <flux:input name="name" label="Nome da Imagem" value="{{ old('name', $image->name) }}" required />

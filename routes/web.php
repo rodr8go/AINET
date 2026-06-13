@@ -158,7 +158,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('catalog-images', TshirtImageController::class)
             ->except(['show'])
-            ->parameters(['catalog-images' => 'tshirtImage']);
+            ->parameters(['catalog-images' => 'catalogImage']);
 
         Route::get('admin/orders', [OrderController::class, 'index'])->name('admin.orders.index');
         Route::get('admin/orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
