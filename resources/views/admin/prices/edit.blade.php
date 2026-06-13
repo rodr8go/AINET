@@ -6,7 +6,7 @@
         <flux:card class="p-6">
             <form action="{{ route('prices.update') }}" method="POST" class="space-y-6">
                 @csrf
-                @method('PUT') {{-- O teu web.php usa Route::put('prices', ...) --}}
+                @method('PUT')
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -47,7 +47,19 @@
                                     placeholder="Ex: 13.00" 
                                     value="{{ old('unit_price_catalog_discount', $prices->unit_price_catalog_discount ?? '') }}" />
                         <flux:text size="sm" class="mt-1 text-zinc-500">
-                            Preço unitário aplicado a partir da quantidade limite de desconto (se aplicável).
+                            Preço unitário do catálogo a partir da quantidade limite.
+                        </flux:text>
+                    </div>
+
+                    <div>
+                        <flux:input type="number" 
+                                    step="0.01" 
+                                    name="unit_price_own_discount" 
+                                    label="Preço Imagem Própria com Desconto (€)" 
+                                    placeholder="Ex: 10.00" 
+                                    value="{{ old('unit_price_own_discount', $prices->unit_price_own_discount ?? '') }}" />
+                        <flux:text size="sm" class="mt-1 text-zinc-500">
+                            Preço unitário da imagem própria a partir da quantidade limite.
                         </flux:text>
                     </div>
 
@@ -58,7 +70,7 @@
                                     placeholder="Ex: 5" 
                                     value="{{ old('qty_discount', $prices->qty_discount ?? '') }}" />
                         <flux:text size="sm" class="mt-1 text-zinc-500">
-                            Número de t-shirts necessárias na mesma encomenda para ativar o desconto.
+                            Número de t-shirts necessárias para ativar o desconto.
                         </flux:text>
                     </div>
                 </div>

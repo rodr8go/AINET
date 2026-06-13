@@ -13,7 +13,7 @@ class PriceController extends Controller
     public function edit(): View
     {
         // Puxa o primeiro registo de preços da tabela de configuração
-        $prices = Price::first() ?? new Price(); 
+        $prices = Price::first() ?? new Price();
         return view('admin.prices.edit', compact('prices'));
     }
 
@@ -23,7 +23,9 @@ class PriceController extends Controller
         $validated = $request->validate([
             'unit_price_catalog' => 'required|numeric|min:0',
             'unit_price_own' => 'required|numeric|min:0',
-            // Adiciona aqui outros campos de preço que tenham na tabela (ex: descontos)
+            'unit_price_catalog_discount' => 'nullable|numeric|min:0',
+            'qty_discount' => 'nullable|integer|min:1',
+            'unit_price_own_discount' => 'nullable|numeric|min:0',
         ]);
 
         $prices = Price::first();

@@ -27,12 +27,12 @@
             <flux:menu.radio.group>
                 <flux:menu.item icon="shopping-bag" :href="route('orders.my')"
                     :current="request()->routeIs('orders.my')" wire:navigate>
-                    My Orders
+                    Minhas Encomendas
                 </flux:menu.item>
                 
                 <flux:menu.item icon="photo" :href="route('my-images.index')"
                     :current="request()->routeIs('my-images.*')" wire:navigate>
-                    My Custom Images
+                    Minhas Imagens
                 </flux:menu.item>
             </flux:menu.radio.group>
         @endif
@@ -44,7 +44,7 @@
             <flux:menu.radio.group>
                 <flux:menu.item icon="truck" :href="route('employee.orders.pending')"
                     :current="request()->routeIs('employee.orders.*')" wire:navigate>
-                    Pending Orders
+                    Encomendas Pendentes
                 </flux:menu.item>
             </flux:menu.radio.group>
         @endif
@@ -56,22 +56,22 @@
             <flux:menu.radio.group>
                 <flux:menu.item icon="users" :href="route('users.index')"
                     :current="request()->routeIs('users.*')" wire:navigate>
-                    Manage Users
+                    Gerir Utilizadores
                 </flux:menu.item>
                 
                 <flux:menu.item icon="shopping-bag" :href="route('customers.index')"
                     :current="request()->routeIs('customers.*')" wire:navigate>
-                    Manage Customers
+                    Gerir Usuarios
                 </flux:menu.item>
                 
                 <flux:menu.item icon="photo" :href="route('catalog-images.index')"
                     :current="request()->routeIs('catalog-images.*')" wire:navigate>
-                    Catalog Images
+                    Catalogo de Imagens
                 </flux:menu.item>
                 
                 <flux:menu.item icon="chart-bar" :href="route('statistics.index')"
                     :current="request()->routeIs('statistics.index')" wire:navigate>
-                    Statistics
+                    Estatisticas
                 </flux:menu.item>
             </flux:menu.radio.group>
         @endif
@@ -80,7 +80,7 @@
 
         <flux:menu.radio.group>
             <flux:menu.item :href="route('profile.edit')" icon="document-text" wire:navigate>
-                My Profile
+                A minha conta
             </flux:menu.item>
             
             <form method="POST" action="{{ route('logout') }}" class="w-full">

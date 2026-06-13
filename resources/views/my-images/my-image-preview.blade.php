@@ -104,16 +104,16 @@
                     <div class="pt-2">
                         <p class="text-xs font-bold tracking-wider uppercase text-zinc-400">Preço unitário:</p>
                         <div class="flex items-baseline gap-3 mt-1">
-                            @if($priceRules && $qty >= $priceRules->qty_discount && $priceRules->unit_price_catalog_discount < $priceRules->unit_price_catalog)
+                            @if($priceRules && $qty >= $priceRules->qty_discount && $priceRules->unit_price_own_discount < $priceRules->unit_price_own)
                                 <p class="text-4xl font-black text-emerald-400 tracking-tight tabular-nums">
-                                    {{ number_format($priceRules->unit_price_catalog_discount, 2, ',', '.') }} €
+                                    {{ number_format($priceRules->unit_price_own_discount, 2, ',', '.') }} €
                                 </p>
                                 <p class="text-base font-semibold text-zinc-500 line-through tabular-nums">
-                                    {{ number_format($priceRules->unit_price_catalog, 2, ',', '.') }} €
+                                    {{ number_format($priceRules->unit_price_own, 2, ',', '.') }} €
                                 </p>
                             @else
                                 <p class="text-4xl font-black text-zinc-100 tracking-tight tabular-nums">
-                                    {{ $priceRules ? number_format($priceRules->unit_price_catalog, 2, ',', '.') : '10,00' }} €
+                                    {{ $priceRules ? number_format($priceRules->unit_price_own, 2, ',', '.') : '10,00' }} €
                                 </p>
                             @endif
                         </div>
